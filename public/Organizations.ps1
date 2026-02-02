@@ -2,18 +2,24 @@
 using namespace System.Collections.Generic
 
 function Set-MerakiAPI() {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param(
         [string]$APIKey,
         [string]$OrgID,
         [string]$ProfileName,
         [switch]$SecureKey
     )
-    
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("organization $OrgID")){
     function Set-MerakiSecret() {
+       [CmdletBinding(SupportsShouldProcess=$true)] 
         Param(
             [string]$APIKey
         )
+	begin{}
+	process{
+		if ($pscmdlet.ShouldProcess("APIKey - $APIKey")){
         $SecretIn = @{
             Version = 1
             APIKey = $APIKey
@@ -26,6 +32,9 @@ function Set-MerakiAPI() {
         }
 
         Set-Secret @Params
+		}
+	}
+	end{}
     }
 
     $configPath = "{0}/.meraki" -f $HOME
@@ -203,13 +212,20 @@ function Set-MerakiAPI() {
     Convert your existing configuration to use the Secure Key Store.
     Set-MerakiAPI -SecureKey     
     #>
+    	}
+    }
+    end{}
 }
 
 function Set-MerakiProfile () {
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$profileName
     )
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("profile $profileName")){
     $configFile = "{0}/.meraki/config.json" -f $home
     $Config = Get-Content -Path $configFile | ConvertFrom-Json | ConvertTo-HashTable
 
@@ -227,10 +243,14 @@ function Set-MerakiProfile () {
     .PARAMETER profileName
     The name of the profile to use.
     #>
+    	}
+    }
+    end{}
 }
 
 
-function Get-MerakiOrganizations() {
+function Get-MerakiOrganization() {
+    [Alias('Get-MerakiOrganizations')]
     Param(
         [string]$APIKey
     )
@@ -320,14 +340,16 @@ function Get-MerakiOrganization() {
 Set-Alias -Name GMOrg -value Get-MerakiOrganization -Option ReadOnly
 
 function New-MerakiOrganization() {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [string]$ManagementName,
         [string]$ManagementValue
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("organization $Name")){
     $Headers = Get-Headers
 
     $Uri = "{0}/organizations" -f $BaseURI
@@ -368,10 +390,13 @@ function New-MerakiOrganization() {
     .PARAMETER ManagementValue
     Value of the management system
     #>
+    	}
+    }
+    end{}
 }
 
 function Set-MerakiOrganization() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default',SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
@@ -383,6 +408,9 @@ function Set-MerakiOrganization() {
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("organization $Name")){
 <# 
     If ($OrgId -and $profileName) {
         Write-Host "The parameters OrgId and ProfileName cannot be used together!" -ForegroundColor Red
@@ -453,11 +481,15 @@ function Set-MerakiOrganization() {
     .OUTPUTS
     A Meraki organization object
     #>
+    	}
+    }
+    end{}
 }
 
 #region Organization Networks
-function Get-MerakiNetworks() {
+function Get-MerakiNetwork() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiNetworks')]
     Param(
         [string]$ConfigTemplateId,
         [switch]$IsBoundToConfigTemplate,
@@ -623,8 +655,9 @@ function Add-MerakiNetwork() {
 
 #endregion
 
-function Get-MerakiOrganizationConfigTemplates() {
+function Get-MerakiOrganizationConfigTemplate() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiOrganizationConfigTemplates')]
     Param(
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgID,
@@ -745,8 +778,9 @@ function Get-MerakiOrganizationConfigTemplate () {
 Set-Alias -Name GMOrgTemplates -value Get-MerakiOrganizationConfigTemplate -Option ReadOnly
 Set-Alias -Name Get-MerakiOrganizationConfigTemplates -Value Get-MerakiOrganizationConfigTemplate
 
-function Get-MerakiOrganizationDevices() {
+function Get-MerakiOrganizationDevice() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiOrganizationDevices')]
     Param(
         [string]$Filter,
         [int]$Pages,
@@ -847,8 +881,9 @@ function Get-MerakiOrganizationDevices() {
 
 Set-Alias -Name GMOrgDevs -Value Get-MerakiOrganizationDevices -Option ReadOnly
 
-function Get-MerakiOrganizationAdmins() {
+function Get-MerakiOrganizationAdmin() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiOrganizationAdmins')]
     Param(
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgID,
@@ -899,8 +934,9 @@ function Get-MerakiOrganizationAdmins() {
 Set-Alias -Name GMOrgAdmins -Value Get-MerakiOrganizationAdmins -Option ReadOnly
 
 
-function Get-MerakiOrganizationConfigurationChanges() {
+function Get-MerakiOrganizationConfigurationChange() {
     [CmdletBinding(DefaultParameterSetName='default')]
+    [Alias('Get-MerakiOrganizationConfigurationChanges')]
     Param(       
         [Parameter(ParameterSetName = 'dates')]
         [Parameter(ParameterSetName = 'datesWithOrg')]
@@ -1059,8 +1095,9 @@ function Get-MerakiOrganizationConfigurationChanges() {
 Set-Alias -Name GMOrgCC -Value Get-MerakiOrganizationConfigurationChanges -Option ReadOnly
 
 
-function Get-MerakiOrganizationThirdPartyVpnPeers() {
+function Get-MerakiOrganizationThirdPartyVpnPeer() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiOrganizationThirdPartyVpnPeers')]
     Param(
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgID,
@@ -1111,7 +1148,7 @@ function Get-MerakiOrganizationThirdPartyVpnPeers() {
 Set-Alias -Name GMOrg3pVP -Value Get-MerakiOrganizationThirdPartyVPNPeers -Option ReadOnly
 
 function Set-MerakiOrganizationThirdPartyVpnPeer() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default',SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
@@ -1133,7 +1170,9 @@ function Set-MerakiOrganizationThirdPartyVpnPeer() {
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("name - $Name")){
     if (-not $OrgID) {
         $config = Read-Config
         if ($profileName) {
@@ -1222,10 +1261,13 @@ function Set-MerakiOrganizationThirdPartyVpnPeer() {
     .PARAMETER profileName
     Optional Profile name.
     #>
+    	}
+    }
+    end{}
 }
 
 function New-MerakiOrganizationThirdPartyVpnPeer() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default',SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
@@ -1247,7 +1289,9 @@ function New-MerakiOrganizationThirdPartyVpnPeer() {
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("name - $Name")){
     if (-not $OrgID) {
         $config = Read-Config
         if ($profileName) {
@@ -1331,10 +1375,14 @@ function New-MerakiOrganizationThirdPartyVpnPeer() {
     .PARAMETER profileName
     Optional Profile name.
     #>
+    	}
+    }
+    end{}
 }
 
-function Get-MerakiOrganizationInventoryDevices() {
+function Get-MerakiOrganizationInventoryDevice() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiOrganizationInventoryDevices')]
     Param(
         [string]$Filter,
         [int]$Pages,
@@ -1469,8 +1517,9 @@ function Get-MerakiOrganizationInventoryDevice() {
     }
 }
 
-function Get-MerakiOrganizationSecurityEvents() {
+function Get-MerakiOrganizationSecurityEvent() {
     [CmdLetBinding(DefaultParameterSetName='Default')]
+    [Alias('Get-MerakiOrganizationSecurityEvents')]
     Param(
         [ValidateScript({$_ -is [datetime]})]
         [Parameter(ParameterSetName = 'dates', Mandatory)]            
@@ -1673,8 +1722,9 @@ function Get-MerakiOrganizationSecurityEvents() {
 
 Set-Alias -Name GMNetSecEvents -Value Get-MerakiOrganizationSecurityEvents
 
-function Get-MerakiOrganizationFirmwareUpgrades() {
+function Get-MerakiOrganizationFirmwareUpgrade() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiOrganizationFirmwareUpgrades')]
     Param(
         [switch]$IncludePending,
         [switch]$includeStarted,
@@ -1906,8 +1956,9 @@ function Get-MerakiOrganizationFirmwareUpgradesByDevice() {
     #>
 }
 
-function Get-MerakiOrganizationDeviceUplinks() {
+function Get-MerakiOrganizationDeviceUplink() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiOrganizationDeviceUplinks')]
     Param(
         [string]$Filter,
         [ValidateScript({$_ -is [int]})]
@@ -2131,8 +2182,9 @@ function Get-MerakiOrganizationDeviceStatus() {
     #>
 }
 
-function Get-MerakiOrganizationApplianceVpnStatuses() {
+function Get-MerakiOrganizationApplianceVpnStatuse() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiOrganizationApplianceVpnStatuses')]
     Param(
         [Parameter(ValueFromPipelineByPropertyName)]
         [Alias('NetworkId')]
@@ -2238,8 +2290,9 @@ function Get-MerakiOrganizationApplianceVpnStatuses() {
     #>
 }
 
-function Get-MerakiOrganizationApplianceUplinkStatuses() {
+function Get-MerakiOrganizationApplianceUplinkStatus() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiOrganizationApplianceUplinkStatuses')]
     Param(
         [Parameter(
             ValueFromPipeline = $true,
@@ -2297,8 +2350,9 @@ Set-Alias -Name GMAppUpStat -value Get-MerakiOrganizationApplianceUplinkStatuses
 Set-Alias -Name Get-MerakiApplianceUplinkStatuses -value Get-MerakiOrganizationApplianceUplinkStatuses -Option ReadOnly
 
 
-function Get-MerakiOrganizationApplianceVpnStats() {
+function Get-MerakiOrganizationApplianceVpnStat() {
     [cmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiOrganizationApplianceVpnStats')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -2433,12 +2487,13 @@ Set-Alias -Name GMAVpnStats -Value Get-MerakiOrganizationApplianceVpnStats -Opti
 Set-Alias -Name GMOAVpnStats -Value Get-MerakiOrganizationApplianceVpnStats -Option ReadOnly
 set-Alias -Name Get-MerakiNetworkApplianceVpnStats -Value Get-MerakiOrganizationApplianceVpnStats
 
-function Merge-MerakiOrganizationNetworks() {
+function Merge-MerakiOrganizationNetwork() {
     [CmdletBinding(
         SupportsShouldProcess, 
         DefaultParameterSetName = 'default',
         ConfirmImpact = 'High'
     )]
+    [Alias('Merge-MerakiOrganizationNetworks')]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
@@ -2525,14 +2580,16 @@ function Merge-MerakiOrganizationNetworks() {
 }
 
 Function New-MerakiSecretsVault() {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param (
         [ValidateSet('Password', 'none')]
         [string]$Authentication,
         [ValidateSet('Prompt','none')]
         [string]$Interaction
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("vault with the authentication - $Authentication")){
     Write-Host "This function is depreciated! You should create and configure your vault manually using the Secret Store module functions." -ForegroundColor Red
     Write-Host "This function will be removed from future releases."
     $response = Read-Host "Do you wish to continue? [y/N]"
@@ -2593,6 +2650,9 @@ Function New-MerakiSecretsVault() {
     This module does not support vaults registered with a different module.
     Secrets will ALWAYS be stored in the default vault!
     #>
+    	}
+    }
+    end{}
 }
 
 function Get-MerakiOrganizationDeviceAvailability() {

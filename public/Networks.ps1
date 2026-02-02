@@ -36,7 +36,7 @@ function Get-MerakiNetwork() {
 Set-Alias -Name GMNet -Value Get-MerakiNetwork -Option:ReadOnly
 
 function Set-MerakiNetwork() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
@@ -47,7 +47,9 @@ function Set-MerakiNetwork() {
         [string[]]$Tags,
         [string]$EnrollmentString
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network - $NetworkId with name $Name")){
     $Headers = Get-Headers
     
     $Uri = "{0}/networks/{1}" -f $BaseURI, $NetworkId
@@ -89,6 +91,9 @@ function Set-MerakiNetwork() {
     .OUTPUTS
     A network object
     #>
+    	}
+    }
+    end{}
 }
 
 function Remove-MerakiNetwork() {
@@ -266,8 +271,9 @@ function Split-MerakiNetwork() {
 
 
 #endregion
-function Get-MerakiNetworkDevices () {
+function Get-MerakiNetworkDevice () {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiNetworkDevices')]
     Param (
         [Parameter(
             Mandatory   = $true,
@@ -306,8 +312,9 @@ function Get-MerakiNetworkDevices () {
 Set-Alias -Name GMNetDevs -Value Get-MerakiNetworkDevices -Option ReadOnly
 
 
-function Get-MerakiNetworkEvents() {
+function Get-MerakiNetworkEvent() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiNetworkEvents')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -492,8 +499,9 @@ function Get-MerakiNetworkEvents() {
 Set-Alias -Name GMNetEvents -value Get-MerakiNetworkEvents -Option ReadOnly
 
 
-function Get-MerakiNetworkEventTypes() {
+function Get-MerakiNetworkEventType() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiNetworkEventTypes')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -526,8 +534,9 @@ function Get-MerakiNetworkEventTypes() {
 
 Set-Alias -Name GMNetET -Value Get-MerakiNetworkEventTypes -Option ReadOnly
 
-function Get-MerakiNetworkClients () {
+function Get-MerakiNetworkClient () {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiNetworkClients')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -1132,8 +1141,9 @@ function Get-MerakiNetworkTraffic() {
     #>
 }
 
-Function Get-MerakiNetworkSyslogServers() {
+Function Get-MerakiNetworkSyslogServer() {
     [CmdletBinding()]
+    [Alias('Get-MerakiNetworkSyslogServers')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -1173,8 +1183,9 @@ Function Get-MerakiNetworkSyslogServers() {
     #>
 }
 
-function Set-MerakiNetworkSyslogServers() {
-    [CmdletBinding()]
+function Set-MerakiNetworkSyslogServer() {
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    [Alias('Set-MerakiNetworkSyslogServers')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -1223,7 +1234,7 @@ function Set-MerakiNetworkSyslogServers() {
     }
 
     process {
-
+		if ($pscmdlet.ShouldProcess("network - $Id, syslog servers - $($Servers -join ',')")){
         $Uri = "{0}/networks/{1}/syslogServers" -f $BaseURI, $Id
 
         if ($PSItem.NetworkName) {
@@ -1241,6 +1252,7 @@ function Set-MerakiNetworkSyslogServers() {
         } catch {
             throw $_
         }
+		}
     }
     <#
     .SYNOPSIS

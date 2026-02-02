@@ -35,7 +35,7 @@ function Get-MerakiDevice() {
 Set-Alias -Name GMNetDev -Value Get-MerakiDevice -Option ReadOnly
 
 function Start-MerakiDeviceBlink() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default',SupportsShouldProcess=$true)]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -47,7 +47,9 @@ function Start-MerakiDeviceBlink() {
         [int]$Duty,
         [int]$Period
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("device with serial - $serial")){
     $Uri = "{0}/devices/{1}/blinkLeds" -f $BaseURI, $serial
     $Headers = Get-Headers
 
@@ -83,6 +85,9 @@ function Start-MerakiDeviceBlink() {
     .PARAMETER ProfileName
     Optional Profile name.
     #>
+    	}
+    }
+    end{}
 }
 Set-Alias -Name StartMDevBlink -Value Start-MerakiDeviceBlink -Option ReadOnly
 
@@ -127,8 +132,9 @@ function Restart-MerakiDevice() {
 
 Set-Alias -Name RestartMD -Value Restart-MerakiDevice -Option ReadOnly
 
-function Get-MerakiDeviceClients() {
+function Get-MerakiDeviceClient() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiDeviceClients')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -195,8 +201,9 @@ function Get-MerakiDeviceClients() {
 
 Set-Alias -Name GMDevClients -Value Get-MerakiDeviceClients -Option ReadOnly
 
-function Get-MerakiDeviceApplianceUplinks() {
+function Get-MerakiDeviceApplianceUplink() {
     [CmdletBinding(DefaultParameterSetName)]
+    [Alias('Get-MerakiDeviceApplianceUplinks')]
     Param(
         [Parameter(
             Mandatory,
@@ -268,7 +275,7 @@ function Submit-MerakiDeviceClaim() {
 }
 
 function Set-MerakiDevice {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param(
         [Parameter(
             Mandatory,
@@ -284,7 +291,9 @@ function Set-MerakiDevice {
         [int]$Longitude,
         [string[]]$Tags
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("device with serial $serial")){
     $Headers = Get-Headers
 
     $Uri = "{0}/devices/{1}" -f $BaseURI, $Serial
@@ -333,6 +342,9 @@ function Set-MerakiDevice {
     .OUTPUTS
     A Device object.
     #>
+    	}
+    }
+    end{}
 }
 
 function Remove-MerakiNetworkDevice() {
