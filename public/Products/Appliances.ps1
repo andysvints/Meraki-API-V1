@@ -246,12 +246,13 @@ Set-Alias -Name AddMNetAppCFR -Value Add-MerakiApplianceContentFilteringRules -O
 Set-Alias -Name Add-MerakiNetworkApplianceContentFilteringRules -Value Add-MerakiApplianceContentFilteringRules -Option ReadOnly
 Set-Alias -Name AddMAppCFR -Value Add-MerakiApplianceContentFilteringRules -Option ReadOnly
 
-function Remove-MerakiApplianceContentFilteringRules () {
+function Remove-MerakiApplianceContentFilteringRule () {
     [CmdletBinding(
         DefaultParameterSetName = 'default', 
         SupportsShouldProcess,
         ConfirmImpact = 'high'
     )]
+    [Alias('Remove-MerakiApplianceContentFilteringRules')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -317,8 +318,9 @@ Set-Alias -Name RemoveMAppCfr -Value Remove-MerakiNetworkApplianceContentFilteri
 #endregion
 
 #region Ports
-function Get-MerakiAppliancePorts() {
+function Get-MerakiAppliancePort() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiAppliancePorts')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -494,8 +496,9 @@ Set-Alias -Name Set-MerakiNetworkAppliancePort -Value Set-MerakiAppliancePort -O
 
 #region Static Routes
 
-function Get-MerakiApplianceStaticRoutes() {
+function Get-MerakiApplianceStaticRoute() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiApplianceStaticRoutes')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -1130,8 +1133,9 @@ Set-Alias -Name Set-MerakiNetworkApplianceVLAN -Value Set-MerakiApplianceVLAN -O
 #endregion
 
 #region Monitoring
-function Get-MerakiApplianceDhcpSubnets() {
+function Get-MerakiApplianceDhcpSubnet() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiApplianceDhcpSubnets')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -1166,8 +1170,9 @@ function Get-MerakiApplianceDhcpSubnets() {
     #>
 }
 
-function Get-MerakiApplianceClientSecurityEvents() {
+function Get-MerakiApplianceClientSecurityEvent() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiApplianceClientSecurityEvents')]
     Param (
         [Parameter(
             Mandatory,
@@ -1303,8 +1308,9 @@ function Get-MerakiApplianceClientSecurityEvents() {
     #>
 }
 
-Function Get-MerakiApplianceSecurityEvents() {
+Function Get-MerakiApplianceSecurityEvent() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiApplianceSecurityEvents')]
     Param(
         [Parameter(
             Mandatory,
@@ -1709,8 +1715,9 @@ Set-Alias -Name Set-MerakiNetworkApplianceSiteToSiteVpn -Value Set-MerakiApplian
 
 
 #region CellularFirewall
-function Get-MerakiApplianceCellularFirewallRules () {
+function Get-MerakiApplianceCellularFirewallRule () {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiApplianceCellularFirewallRules')]
     Param(
         [Parameter(
             Mandatory,
@@ -1753,8 +1760,9 @@ function Get-MerakiApplianceCellularFirewallRules () {
     #>
 }
 
-function Set-MerakiApplianceCellularFirewallRules() {
+function Set-MerakiApplianceCellularFirewallRule() {
     [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
+    [Alias('Get-MerakiApplianceCellularFirewallRules')]
     Param(
         [Parameter(Mandatory = $true)]
         [Alias('NetworkId')]
@@ -2037,8 +2045,9 @@ function Remove-MerakiApplianceCellularFirewallRule() {
     #>
 }
 
-function Get-MerakiApplianceInboundCellularFirewallRules() {
+function Get-MerakiApplianceInboundCellularFirewallRule() {
     [CmdletBinding()]
+    [Alias('Get-MerakiApplianceInboundCellularFirewallRules')]
     Param (
         [Parameter(
             Mandatory,
@@ -2082,8 +2091,9 @@ function Get-MerakiApplianceInboundCellularFirewallRules() {
     #>
 }
 
-function Set-MerakiApplianceInboundCellularFirewallRules () {
+function Set-MerakiApplianceInboundCellularFirewallRule () {
     [CmdletBinding(SupportsShouldProcess=$true)]
+    [Alias('Get-MerakiApplianceInboundCellularFirewallRules')]
     param (
         [Parameter(
             Mandatory,
@@ -2375,8 +2385,9 @@ function Remove-MerakiApplianceInboundCellularFirewallRule() {
 #endregion
 
 #region InboundFirewallRules
-function Get-MerakiApplianceInboundFirewallRules() {
+function Get-MerakiApplianceInboundFirewallRule() {
     [CmdletBinding()]
+    [Alias('Get-MerakiApplianceInboundFirewallRules')]
     Param (
         [Parameter(
             Mandatory,
@@ -2421,8 +2432,9 @@ function Get-MerakiApplianceInboundFirewallRules() {
     #>
 }
 
-function Set-MerakiApplianceInboundFirewallRules() {
+function Set-MerakiApplianceInboundFirewallRule() {
     [CmdletBinding(SupportsShouldProcess=$true)]
+    [Alias('Set-MerakiApplianceInboundFirewallRules')]
     Param(
         [Parameter(
             Mandatory,
@@ -2788,8 +2800,9 @@ function Set-MerakiApplianceFirewalledService() {
 #endregion
 
 #region L3 Firewall Rules
-Function Get-MerakiApplianceL3FirewallRules() {
+Function Get-MerakiApplianceL3FirewallRule() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiApplianceL3FirewallRules')]
     Param(
         [Parameter(
             Mandatory,
@@ -2824,8 +2837,9 @@ Function Get-MerakiApplianceL3FirewallRules() {
     #>
 }
 
-function Set-MerakiApplianceL3FirewallRules() {
+function Set-MerakiApplianceL3FirewallRule() {
     [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
+    [Alias('Set-MerakiApplianceL3FirewallRules')]
     Param(
         [Parameter(
             Mandatory,
@@ -3153,8 +3167,9 @@ function Remove-MerakiApplianceL3FirewallRule() {
 #endregion
 
 #region L7 firewall rules
-function Get-MerakiApplianceL7FirewallRules() {
+function Get-MerakiApplianceL7FirewallRule() {
     [CmdletBinding()]
+    [Alias('Get-MerakiApplianceL7FirewallRules')]
     Param (
         [Parameter(
             Mandatory,
@@ -3196,8 +3211,9 @@ function Get-MerakiApplianceL7FirewallRules() {
     #>
 }
 
-function Set-MerakiApplianceL7FirewallRules() {
+function Set-MerakiApplianceL7FirewallRule() {
     [CmdletBinding(SupportsShouldProcess=$true)]
+    [Alias('Set-MerakiApplianceL7FirewallRules')]
     Param (
         [Parameter(
             Mandatory,
@@ -3404,8 +3420,9 @@ function Remove-MerakiApplianceL7FirewallRule() {
     #>
 }
 
-Function Get-MerakiApplianceL7ApplicationCategories() {
+Function Get-MerakiApplianceL7ApplicationCategory() {
     [CmdletBinding()]
+    [Alias('Get-MerakiApplianceL7ApplicationCategories')]
     Param (
         [Parameter(
             Mandatory,
@@ -3442,8 +3459,9 @@ Function Get-MerakiApplianceL7ApplicationCategories() {
 #endregion
 
 #region Firewall NAR Rules
-function Get-MerakiApplianceFirewallNatRules() {
+function Get-MerakiApplianceFirewallNatRule() {
     [CmdletBinding()]
+    [Alias('Get-MerakiApplianceFirewallNatRules')]
     Param (
         [Parameter(
             Mandatory,
@@ -3504,8 +3522,9 @@ function Get-MerakiApplianceFirewallNatRules() {
     #>
 }
 
-function Set-MerakiApplianceFirewallNatRules() {
+function Set-MerakiApplianceFirewallNatRule() {
     [CmdletBinding(SupportsShouldProcess=$true)]
+    [Alias('Set-MerakiApplianceFirewallNatRules')]
     Param (
         [Parameter(
             Mandatory,
@@ -3973,8 +3992,9 @@ function Remove-MerakiApplianceFirewallNatRule {
 #endregion
 
 #region prefixes
-function Get-MerakiApplianceDelegatesStaticPrefixes() {
+function Get-MerakiApplianceDelegatesStaticPrefix() {
     [CmdletBinding()]
+    [Alias('Get-MerakiApplianceDelegatesStaticPrefixes')]
     Param (
         [Parameter(
             Mandatory,
@@ -4126,7 +4146,7 @@ function Add-MerakiApplianceDelegatedStaticPrefix() {
 }
 
 function Set-MerakiApplianceDelegatedStaticPrefix() {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory,
@@ -4167,6 +4187,7 @@ function Set-MerakiApplianceDelegatedStaticPrefix() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network - $Id")){
         $Uri = "{0}/networks/{networkId}/appliance/prefixes/delegated/statics/{staticDelegatedPrefixId}" -f $BaseURI, $Id, $PrefixId
 
         try {
@@ -4176,6 +4197,7 @@ function Set-MerakiApplianceDelegatedStaticPrefix() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
     <#
     .DESCRIPTION
@@ -4269,7 +4291,7 @@ function Get-MerakiApplianceSecurityIntrusion() {
 }
 
 function Set-MerakiApplianceSecurityIntrusion() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory,
@@ -4312,6 +4334,7 @@ function Set-MerakiApplianceSecurityIntrusion() {
     }    
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network - $Id")){
         $Uri = "{0}/networks/{1}/appliance/security/intrusion" -f $BaseURI, $Id
 
         try {
@@ -4321,6 +4344,7 @@ function Set-MerakiApplianceSecurityIntrusion() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
     <#
     .DESCRIPTION
@@ -4341,8 +4365,9 @@ function Set-MerakiApplianceSecurityIntrusion() {
     #>
 }
 
-function Get-MerakiApplianceSecurityMalwareSettings() {
+function Get-MerakiApplianceSecurityMalwareSetting() {
     [CmdletBinding()]
+    [Alias('Get-MerakiApplianceSecurityMalwareSettings')]
     Param (
         [Parameter(
             Mandatory,
@@ -4387,8 +4412,9 @@ function Get-MerakiApplianceSecurityMalwareSettings() {
     #>
 }
 
-function Set-MerakiApplianceSecurityMalwareSettings() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+function Set-MerakiApplianceSecurityMalwareSetting() {
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
+    [Alias('Set-MerakiApplianceSecurityMalwareSettings')]
     Param (
         [Parameter(
             Mandatory,
@@ -4429,6 +4455,7 @@ function Set-MerakiApplianceSecurityMalwareSettings() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network - $Id ")){
         $Uri = "{0}/networks/{1}/appliance/security/malware" -f $BaseURI, $id
 
         try {
@@ -4448,6 +4475,7 @@ function Set-MerakiApplianceSecurityMalwareSettings() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
     <#
     .DESCRIPTION
@@ -4507,7 +4535,7 @@ function Get-MerakiApplianceSingleLan() {
 }
 
 function Set-MerakiApplianceSingleLan() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param (
         [Parameter(Mandatory)]
         [string]$NetworkId,
@@ -4519,7 +4547,9 @@ function Set-MerakiApplianceSingleLan() {
         [PSObject[]]$Ipv6PrefixAssignments,
         [switch]$MandatoryDHCP
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network - $NetworkId")){
     $_Body = @{}
 
     if ($ApplianceIp) {
@@ -4549,6 +4579,9 @@ function Set-MerakiApplianceSingleLan() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .DESCRIPTION
     Return single LAN configuration
@@ -4614,7 +4647,7 @@ function Get-MerakiApplianceSSID() {
 Set-Alias -Name Get-MerakiApplianceSSIDs -Value Get-MerakiApplianceSSID -Option ReadOnly
 
 function Set-MerakiApplianceSSID() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory,
@@ -4704,6 +4737,7 @@ function Set-MerakiApplianceSSID() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network $Id")){
         $Uri = "{0}/networks/{1}/appliance/ssids/{2}" -f $BaseURI, $Id, $Number
         try {
             $response = Invoke-RestMethod -Method Put -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
@@ -4712,6 +4746,7 @@ function Set-MerakiApplianceSSID() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
     <#
     .DESCRIPTION
@@ -4752,7 +4787,7 @@ function Set-MerakiApplianceSSID() {
 
 #region WarmSpare
 function Get-MerakiApplianceWarmSpare() {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory,
@@ -4767,6 +4802,7 @@ function Get-MerakiApplianceWarmSpare() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network - $Id")){
         $Uri = "{0}/networks/{2}/appliance/warmSpare/swap" -f $BaseURI, $Id
 
         try {
@@ -4776,6 +4812,7 @@ function Get-MerakiApplianceWarmSpare() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
     <#
     .DESCRIPTION
@@ -4788,7 +4825,7 @@ function Get-MerakiApplianceWarmSpare() {
 }
 
 function Set-MerakiApplianceWarmSpare() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(
             Mandatory,
@@ -4828,6 +4865,7 @@ function Set-MerakiApplianceWarmSpare() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network - $Id ")){
         $Uri = "{0}/networks/{networkId}/appliance/warmSpare" -f $BaseURI, $Id
 
         try {
@@ -4837,6 +4875,7 @@ function Set-MerakiApplianceWarmSpare() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
     <#
     .DESCRIPTION
