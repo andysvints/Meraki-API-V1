@@ -3777,7 +3777,7 @@ function Add-MerakiApplianceFirewallNatRule() {
 }
 
 Function Set-MerakiApplianceFirewallNatRule() {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory
@@ -3832,7 +3832,9 @@ Function Set-MerakiApplianceFirewallNatRule() {
         [string[]]$AllowedIps
 
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network - $Id")){
     $Rules_ = @{}
     Get-MerakiApplianceFirewallNatRules -Id $NetworkId -Type $Type | ForEach-Object {
         $Rules_.Add($_.RuleNumber, $_)
@@ -3877,6 +3879,8 @@ Function Set-MerakiApplianceFirewallNatRule() {
     } catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
+    }
+    	}
     }
     <#
     .DESCRIPTION
