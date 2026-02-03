@@ -2559,7 +2559,7 @@ function Set-MerakiApplianceInboundFirewallRules() {
  }
 
  function Set-MerakiApplianceInboundFirewallRule() {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory,
@@ -2590,6 +2590,7 @@ function Set-MerakiApplianceInboundFirewallRules() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network $Id")){
         Get-MerakiApplianceInboundFirewallRules -id $id | ForEach-Object {
             $Rules.Add($_.RuleNumber, $_)
         }
@@ -2628,6 +2629,7 @@ function Set-MerakiApplianceInboundFirewallRules() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
     <#
     .DESCRIPTION
@@ -2733,7 +2735,7 @@ function Get-MerakiApplianceFirewalledService() {
 }
 
 function Set-MerakiApplianceFirewalledService() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory,
@@ -2770,6 +2772,7 @@ function Set-MerakiApplianceFirewalledService() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network $Id")){
         $Uri = "{0}/networks/{1}/appliance/firewall/firewalledServices/{2}" -f $BaseURI, $Id, $Service
 
         try {
@@ -2779,6 +2782,7 @@ function Set-MerakiApplianceFirewalledService() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
 }
 #endregion
@@ -2821,7 +2825,7 @@ Function Get-MerakiApplianceL3FirewallRules() {
 }
 
 function Set-MerakiApplianceL3FirewallRules() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(
             Mandatory,
@@ -2850,7 +2854,7 @@ function Set-MerakiApplianceL3FirewallRules() {
     }
 
     Process {
-    
+    	if ($pscmdlet.ShouldProcess("network $Id")){
         $Uri = "{0}/networks/{1}/appliance/firewall/l3FirewallRules" -f $BaseUri, $id
         $_body = @{
             "rules" = $Rules
@@ -2873,6 +2877,7 @@ function Set-MerakiApplianceL3FirewallRules() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
     <#
     .DESCRIPTION
@@ -2976,7 +2981,7 @@ function Add-MerakiApplianceL3FirewallRule() {
 }
 
 function Set-MerakiApplianceL3FirewallRule() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(
             Mandatory
@@ -3006,7 +3011,9 @@ function Set-MerakiApplianceL3FirewallRule() {
         [string]$DestinationPort,
         [switch]$SyslogEnabled
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network $NetworkId")){
     $Rules_ = @{}
     Get-MerakiApplianceL3FirewallRules -id $NetworkId | ForEach-Object {
         $Rules_.Add($_.RuleNumber, $_)
@@ -3079,6 +3086,9 @@ function Set-MerakiApplianceL3FirewallRule() {
     Log this rule to syslog (true or false, boolean value) - only applicable if a syslog has been configured (optional)
     .PARAMETER 
     #>
+    	}
+    }
+    end{}
 }
 
 function Remove-MerakiApplianceL3FirewallRule() {
@@ -3187,7 +3197,7 @@ function Get-MerakiApplianceL7FirewallRules() {
 }
 
 function Set-MerakiApplianceL7FirewallRules() {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory,
@@ -3203,6 +3213,7 @@ function Set-MerakiApplianceL7FirewallRules() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network $Id")){
         $Uri = "{0}/networks/{1}/appliance/firewall/l7FirewallRules" -f $BaseURI, $Id
 
         # Remove the default rule if it exists
@@ -3224,6 +3235,7 @@ function Set-MerakiApplianceL7FirewallRules() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+	}
     }
     <#
     .DESCRIPTION
@@ -3295,7 +3307,7 @@ function Add-MerakiApplianceL7FirewallRule() {
 }
 
 function Set-MerakiApplianceL7FirewallRule () {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory,
@@ -3316,6 +3328,7 @@ function Set-MerakiApplianceL7FirewallRule () {
     )
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network $Id")){
         $Rules_ = @{}
         Get-MerakiApplianceL7FirewallRules -id $Id| ForEach-Object {
             $Rules_.Add($_.RuleNumber, $_)            
@@ -3337,6 +3350,7 @@ function Set-MerakiApplianceL7FirewallRule () {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+	}
     }
     <#
     .DESCRIPTION
@@ -3491,7 +3505,7 @@ function Get-MerakiApplianceFirewallNatRules() {
 }
 
 function Set-MerakiApplianceFirewallNatRules() {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory,
@@ -3523,6 +3537,7 @@ function Set-MerakiApplianceFirewallNatRules() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network $Id")){
         $Uri = $Uri -f $BaseURI, $Id
 
         # Remove the RuleNumber, NetworkId, and NetworkName properties.
@@ -3551,6 +3566,7 @@ function Set-MerakiApplianceFirewallNatRules() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+	}
     }
     <#
     .DESCRIPTION
