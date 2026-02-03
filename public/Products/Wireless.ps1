@@ -54,7 +54,7 @@ Set-Alias -Name GMSSIDs -Value Get-MerakiSSID -Option ReadOnly
 Set-Alias -Name GMSSID -Value Get-MerakiSSID -Option ReadOnly
 
 function Set-MerakiSSID() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default',SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory,
@@ -441,6 +441,7 @@ function Set-MerakiSSID() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network $Id")){
         $Uri = "{0}/networks/{1}/wireless/ssids/{2}" -f $BaseURI, $Id, $Number
 
         try {
@@ -450,6 +451,7 @@ function Set-MerakiSSID() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
     <#
     .DESCRIPTION
@@ -784,7 +786,7 @@ function Add-MerakiSsidIdentityPsk() {
 }
 
 function Set-MerakiSsidIdentityPsk() {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param (
         [Parameter(
             Mandatory,
@@ -828,6 +830,7 @@ function Set-MerakiSsidIdentityPsk() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("network - $Id")){
         $Uri = "{0}/networks/{1}/wireless/ssids/{2}/identityPsks/{3}" -f $BaseUri, $Id, $Number, $IdentityPskId
 
         try {
@@ -841,6 +844,7 @@ function Set-MerakiSsidIdentityPsk() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
     <#
     .DESCRIPTION
@@ -945,8 +949,9 @@ function Get-MerakiWirelessStatus() {
 
 Set-Alias -Name GMWirelessStat -Value Get-MerakiWirelessStatus
 
-function Get-MerakiNetworkClientConnectionStats() {
+function Get-MerakiNetworkClientConnectionStat() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiNetworkClientConnectionStats')]
     Param(
         [Parameter(
             Mandatory,
