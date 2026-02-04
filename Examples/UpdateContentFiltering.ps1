@@ -1,5 +1,5 @@
-[CmdletBinding(DefaultParameterSetName='NetworkName')]
-Param(
+[CmdletBinding(DefaultParameterSetName = 'NetworkName')]
+param(
     [Parameter(
         Mandatory = $true,
         ParameterSetName = 'Name'
@@ -25,25 +25,28 @@ Param(
     [string[]] $blockedURLCategories
 )
 
-If ($All) {
+if ($All) {
     $Networks = Get-MerakiNetworks
-} else {
+}
+else {
     if ($Templates) {
         $Networks = Get-MerakiOrganizationConfigTemplates
-    } else {
+    }
+    else {
         if ($networkId) {
             $Networks = @()
             $Networks += Get-MerakiNetwork -networkID $networkId
-        } else {
+        }
+        else {
             $Networks = @()
-            $Networks += Get-MerakiNetwork | Where-Object {$_.Name -eq $networkName}
+            $Networks += Get-MerakiNetwork | Where-Object { $_.Name -eq $networkName }
         }
     }
 }
 
-If ( (-not $AllowURL) -and (-not $DenyURL)) {
+if ( (-not $AllowURL) -and (-not $DenyURL)) {
     $PSCmdlet.ThrowTerminatingError([System.Management.Automation.ErrorRecord]::new(
-        [System.Management.Automation.ParameterBindingException]'At least one of AllowURL and DenyURL must be provided', 
+            [System.Management.Automation.ParameterBindingException]'At least one of AllowURL and DenyURL must be provided', 
             'MissingRequiredParameter',
             [System.Management.Automation.ErrorCategory]::InvalidArgument, $null)
     )
@@ -51,17 +54,18 @@ If ( (-not $AllowURL) -and (-not $DenyURL)) {
 
 $contentFiltering = Get-MerakiNetworkApplianceContentFiltering -id $networkId
 
-If ($AllowURL) {
+if ($AllowURL) {
     $contentFiltering.AllowUrlPatterns += $AllowURL
 }
 
-If ($blockedURL) {
+if ($blockedURL) {
     $contentFiltering.blockedUrlPatterns += $blockedURL
 }
 
-If ($blockedURLCategories) {
+if ($blockedURLCategories) {
     $contentFiltering.blockedUrlCategories += $blockedURLCategories
 }
 
 
 Update-MerakiNetworkApplianceContentFiltering -id $networkId -ContentFilteringRules $contentFiltering
+

@@ -18,7 +18,8 @@ Task Publish -depends Build {
     # Write-Host "test publish = $testpublish"
     if ($testpublish -eq "yes") {
         $whatIf = $true
-    } else {
+    }
+    else {
         $whatIf = $false
     }
     # Write-Host "whatif = $whatIf"
@@ -42,4 +43,5 @@ Task Init {
         New-Item -ItemType Directory $PublishDir
     }    
 }
+
 

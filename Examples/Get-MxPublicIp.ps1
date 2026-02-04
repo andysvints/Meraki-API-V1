@@ -3,11 +3,11 @@ using namespace System.Collections.Generic
 
 #Requires -Modules Meraki-API-V1,AWS.Tools.SecretsManager
 
-Param(
+param(
     [string]$OutputFolder = "./"
 )
 
-If ($OutputFolder) {
+if ($OutputFolder) {
     if (-not (Test-Path -Path $OutputFolder)) {
         throw "Output folder does not exist!"
     }
@@ -16,7 +16,7 @@ If ($OutputFolder) {
     }
 } 
 
-$DateString = get-date -Format "ddMMyyyy"
+$DateString = Get-Date -Format "ddMMyyyy"
 $ReportName = "{0}MerakiWanIPs-{1}.csv" -f $OutputFolder, $DateString
 
 $Orgs = Get-MerakiOrganizations
@@ -30,5 +30,6 @@ foreach ($Org in $Orgs) {
 }
 
 
-$ApplianceStatuses | Select-Object Organization, NetworkName, Model, PublicIp | Export-csv -Path $ReportName
+$ApplianceStatuses | Select-Object Organization, NetworkName, Model, PublicIp | Export-Csv -Path $ReportName
+
 

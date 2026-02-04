@@ -10,26 +10,28 @@ $Networks = Get-MerakiNetworks -profileName $ProfileName
 
 foreach ($Network in $Networks) {
     Write-Host "$($Network.Name) : $($Network.id)"
-    $Devices = Get-MerakiNetworkDevices -NetworkId $Network.Id | Where-Object {$_.model -like "MX*" -or $_.model -like "MS*"}
-    $Appliances = $Devices.where({$_.Model -like "MX*"})
-    $Switches = $Devices.Where({$_.Model -like "MS*"})
+    $Devices = Get-MerakiNetworkDevices -NetworkId $Network.Id | Where-Object { $_.model -like "MX*" -or $_.model -like "MS*" }
+    $Appliances = $Devices.where({ $_.Model -like "MX*" })
+    $Switches = $Devices.Where({ $_.Model -like "MS*" })
     try {
         $Stacks = Get-MerakiSwitchStack -NetworkId Network.Id
-    } catch {
+    }
+    catch {
         # Do nothing
     }
 
     foreach ($Appliance in $Appliances) {
         try {
             $VLANS = Get-MerakiApplianceVLANS -Id $Network.Id 
-        } catch {
+        }
+        catch {
             $VLANS = Get-MerakiApplianceSingleLan -Id $Network.Id
         }
         foreach ($VLAN in $VLANS) {
             $Segments.Add(
                 [PSCustomObject]@{
-                    'IP Range (CIDR)' = $VLAN.Subnet
-                    'Segment High Level Description' = $Network.Name
+                    'IP Range (CIDR)'	    = $VLAN.Subnet; 'Segment 
+		    High Level Description' = $Network.Name
                 }
             )
         }
@@ -41,7 +43,7 @@ foreach ($Network in $Networks) {
             if ($Interface.Subnet) {
                 $Segments.Add( 
                     [PSCustomObject]@{
-                        'IP Range (CIDR)' = $Interface.Subnet
+                        'IP Range (CIDR)'                = $Interface.Subnet
                         'Segment High Level Description' = "$($Network.Name) : $($Interface.Name)"
                     }
                 )
@@ -54,7 +56,7 @@ foreach ($Network in $Networks) {
         foreach ($Interface in $Interfaces) {
             $Segments.Add( 
                 [PSCustomObject]@{
-                    'IP Range (CIDR)' = $Interface.Subnet
+                    'IP Range (CIDR)'                = $Interface.Subnet
                     'Segment High Level Description' = "$($Network.Name) : $($Interface.Name)"
                 }
             )
@@ -63,3 +65,4 @@ foreach ($Network in $Networks) {
 }
 
 return $Segments.ToArray()
+
