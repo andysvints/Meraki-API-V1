@@ -36,7 +36,9 @@ function ConvertFrom-UTime() {
     return $DateTime
 }
 
-function Get-Headers() {
+function Get-Header() {
+    [Alias('Get-Headers')]
+    param()
     $config = Read-Config
     $Headers = @{
         "Authorization" = "Bearer $($config.APIKey)"

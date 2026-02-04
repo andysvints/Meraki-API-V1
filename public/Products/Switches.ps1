@@ -1953,7 +1953,7 @@ Set-Alias -Name GMSwPorts -Value Get-MerakiSwitchPort -Option ReadOnly
 Set-Alias -Name Get-MerakiSwitchPorts -Value Get-MerakiSwitchPort -Option ReadOnly
 
 function Set-MerakiSwitchPort() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(
             Mandatory,
@@ -2059,6 +2059,7 @@ function Set-MerakiSwitchPort() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("port - $PortId for a switch - $Serial")){
        $Uri = "{0}/devices/{1}/switch/ports/{2}" -f $BaseURI, $Serial, $PortId
 
         $_Body = @{}  
@@ -2070,6 +2071,7 @@ function Set-MerakiSwitchPort() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
 
     <#
@@ -2134,8 +2136,9 @@ function Set-MerakiSwitchPort() {
     #>
 }
 
-function Reset-MerakiSwitchPorts() {
-    [CmdLetBinding(DefaultParameterSetName = 'default')]
+function Reset-MerakiSwitchPort() {
+    [CmdLetBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
+    [Alias('Reset-MerakiSwitchPorts')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -2148,7 +2151,9 @@ function Reset-MerakiSwitchPorts() {
         )]
         [string[]]$ports
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("switch - $Serial")){
     $Uri = "{0}/devices/{1}/devices/ports/cycle"
     $Headers = Get-Headers
 
@@ -2165,6 +2170,9 @@ function Reset-MerakiSwitchPorts() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .SYNOPSIS
     Resets (cycles) a Meraki switch port.
@@ -2248,8 +2256,9 @@ function Get-MerakiSwitchPortsStatus() {
 
 Set-Alias -Name GMSWPortStatus  -Value Get-MerakiSwitchPortsStatus -Option ReadOnly
 
-function Get-MerakiSwitchPortsPacketCounters() {
+function Get-MerakiSwitchPortsPacketCounter() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiSwitchPortsPacketCounters')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -2305,8 +2314,9 @@ function Get-MerakiSwitchPortsPacketCounters() {
 
 Set-Alias -Name GMSWPortsPacketCntrs -Value Get-MerakiSwitchPortsPacketCounters
 
-function Get-MerakiSwitchPortSchedules() {
+function Get-MerakiSwitchPortSchedule() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
+    [Alias('Get-MerakiSwitchPortSchedules')]
     Param(
         [Parameter(
             Mandatory = $true,
@@ -2440,7 +2450,7 @@ function Add-MerakiSwitchPortSchedule(){
 }
 
 function Set-MerakiSwitchPortSchedule() {
-    [CmdletBinding(DefaultParameterSetName = 'defailt')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
@@ -2451,7 +2461,9 @@ function Set-MerakiSwitchPortSchedule() {
         [Parameter(Mandatory = $true)]
         [hashtable]$PortSchedule
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network $NetworkId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/networks/{1}/switch/portSchedules/{2}" -f $BaseURI, $NetworkId, $PortScheduleId
@@ -2470,6 +2482,9 @@ function Set-MerakiSwitchPortSchedule() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .SYNOPSIS
     Modify a port schedule
@@ -2673,7 +2688,7 @@ function Add-MerakiSwitchQosRule() {
 }
 
 function Set-MerakiSwitchQosRule() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
@@ -2697,7 +2712,9 @@ function Set-MerakiSwitchQosRule() {
         [ValidateRange(-1,0)]
         [int]$dscp
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network - $NetworkId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/networks/{1}/switch/qosRules{2}" -f $BaseURI, $NetworkId, $QosRuleId
@@ -2722,6 +2739,9 @@ function Set-MerakiSwitchQosRule() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .SYNOPSIS
     Update a QOS rule.
@@ -2840,14 +2860,16 @@ function Get-MerakiSwitchQosRulesOrder() {
 }
 
 function Set-MerakiSwitchQosRuleOrder() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
         [Parameter(Mandatory = $true)]
         [string[]]$RuleIds
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network - $NetworkId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/networks/{1}/switch/qosRules/order" -f $BaseURI, $NetworkId
@@ -2865,6 +2887,9 @@ function Set-MerakiSwitchQosRuleOrder() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .SYNOPSIS
     Update the QOS rules order
@@ -3141,7 +3166,7 @@ function Add-MerakiSwitchAccessPolicy() {
 }
 
 function Set-MerakiSwitchAccessPolicy() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
@@ -3173,7 +3198,9 @@ function Set-MerakiSwitchAccessPolicy() {
         [Parameter(ParameterSetName = 'RadiusAccounting')]
         [PSObject[]]$RadiusAccountingServers
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network - $NetworkId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/networks/{1}/switch/accessPolicies{2}" -f $BaseURI, $NetworkId, $AccessPolicyNumber
@@ -3226,6 +3253,9 @@ function Set-MerakiSwitchAccessPolicy() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .SYNOPSIS
     Create a switch access policy
@@ -3363,7 +3393,7 @@ function Get-MerakiSwitchRoutingMulticast() {
 }
 
 function Set-MerakiSwitchRoutingMulticast() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
@@ -3371,7 +3401,9 @@ function Set-MerakiSwitchRoutingMulticast() {
         [switch]$igmpSnoopingEnabled,
         [PSObject[]]$Overrides
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network - $NetworkId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/networks/{1}/switch/routing/multicast" -f $NetworkId
@@ -3396,7 +3428,9 @@ function Set-MerakiSwitchRoutingMulticast() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
-
+    	}
+    }
+    end{}
     <#
     .SYNOPSIS
     Update switch multicast routing
@@ -3462,7 +3496,7 @@ function Get-MerakiSwitchRoutingOspf() {
 }
 
 function Set-MerakiSwitchRoutingOspf() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
@@ -3488,7 +3522,9 @@ function Set-MerakiSwitchRoutingOspf() {
         [PSObject[]]$V3Areas,
         [psobject[]]$Areas
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network - $NetworkId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/networks/{1}/switch/routing/ospf" -f $BaseURI, $NetworkId
@@ -3524,6 +3560,9 @@ function Set-MerakiSwitchRoutingOspf() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .SYNOPSIS
     Modify the OSPF settings
@@ -3762,7 +3801,7 @@ function Remove-MerakiSwitchAccessControlEntry() {
 Set-Alias -Name RMSWAce -value Remove-MerakiSwitchAccessControlEntry
 
 function Set-MerakiSwitchAccessControlEntry() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
@@ -3783,7 +3822,9 @@ function Set-MerakiSwitchAccessControlEntry() {
         [string]$DestinationCidr = 'any',
         [string]$Comment
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network - $NetworkId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/networks/{1}/switch/accessControlList" -f $BaseURI, $NetworkId
@@ -3822,6 +3863,9 @@ function Set-MerakiSwitchAccessControlEntry() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .DESCRIPTION
     Updates an Access Control Entry inthe Access Control List.
