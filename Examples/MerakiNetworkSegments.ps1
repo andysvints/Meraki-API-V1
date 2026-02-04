@@ -9,7 +9,7 @@ $Segments = [List[object]]::New()
 $Networks = Get-MerakiNetworks -profileName $ProfileName
 
 foreach ($Network in $Networks) {
-    Write-Host "$($Network.Name) : $($Network.id)"
+    Write-Output "$($Network.Name) : $($Network.id)"
     $Devices = Get-MerakiNetworkDevices -NetworkId $Network.Id | Where-Object { $_.model -like "MX*" -or $_.model -like "MS*" }
     $Appliances = $Devices.where({ $_.Model -like "MX*" })
     $Switches = $Devices.Where({ $_.Model -like "MS*" })
