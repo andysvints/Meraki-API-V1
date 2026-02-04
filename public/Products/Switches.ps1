@@ -228,7 +228,7 @@ Function Remove-MerakiSwitchStackRoutingInterface() {
 Set-Alias -Name RemoveMSStackRouteInt -Value Remove-MerakiSwitchStackRoutingInterface
 
 function Set-MerakiSwitchStackRoutingInterface() {
-    [CmdletBinding(DefaultParameterSetName ='default')]
+    [CmdletBinding(DefaultParameterSetName ='default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
@@ -257,7 +257,9 @@ function Set-MerakiSwitchStackRoutingInterface() {
         [string]$OspfV3Area,
         [bool]$OspfV3IsPassiveEnabled
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network $NetworkId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/networks/{1}/switch/stacks/{2}/routing/interfaces/{3}" -f $BaseURI, $NetworkId, $StackId, $InterfaceId
@@ -292,7 +294,9 @@ function Set-MerakiSwitchStackRoutingInterface() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
-
+    	}
+    }
+    end{}
     <#
     .DESCRIPTION
     Update a switch stack routing interface.
@@ -396,6 +400,7 @@ set-alias -Name GMSwStRoutStatic -Value Get-MerakiSwitchStackRoutingStaticRoutes
 Set-Alias -Name Get-MerakiSwitchStackRoutingStaticRoutes -Value Get-MerakiSwitchStackRoutingStaticRoute
 
 function Set-MerakiSwitchStackRoutingStaticRoute() {
+    [CmdletBinding(SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
@@ -409,7 +414,9 @@ function Set-MerakiSwitchStackRoutingStaticRoute() {
         [switch]$AdvertiseViaOspf,
         [switch]$PreferOverOspfRoutes
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network $NetworkId")){
     $Header = Get-Header
 
     $Uri = "{0}/networks/{1}/switch/stacks/{2}/routing/staticRoutes/{3}" -f $BaseURI, $NetworkId, $StackId, $StaticRouteId
@@ -431,6 +438,9 @@ function Set-MerakiSwitchStackRoutingStaticRoute() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .DESCRIPTION 
     Retrieves a static route for the specified network.
@@ -586,7 +596,7 @@ Set-Alias -Name GMSwStRoutIntDHCP -Value Get-MerakiSwitchStackRoutingInterfaceDH
 Set-Alias -Name Get-MerakiSwitchStackRoutingInterfacesDHCP -Value Get-MerakiSwitchStackRoutingInterfaceDHCP
 
 function Set-MerakiSwitchStackRoutingInterfaceDhcp() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
@@ -608,7 +618,9 @@ function Set-MerakiSwitchStackRoutingInterfaceDhcp() {
         [hashtable[]]$ReservedIpRanges,
         [hashtable[]]$fixedIpAssignments
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network $NetworkId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/networks/{1}/switch/stacks/{2}/routing/interfaces{3}/dhcp" -f $BaseURI, $NetworkId, $Stackid, $interfaceId
@@ -635,6 +647,9 @@ function Set-MerakiSwitchStackRoutingInterfaceDhcp() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .DESCRIPTION
     Update a switch stack interface DHCP settings
@@ -861,7 +876,7 @@ function Add-MerakiSwitchRoutingInterface() {
 Set-Alias -Name AddMSRouteInt -Value Add-MerakiSwitchRoutingInterface
 
 function Set-MerakiSwitchRoutingInterface() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$Serial,
@@ -890,7 +905,9 @@ function Set-MerakiSwitchRoutingInterface() {
         [string]$OspfV3Area,
         [switch]$OspfV3IsPassive
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("switch $Serial for interface $InterfaceId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/devices/{2}/switch/routing/interfaces/{2}" -f $BaseURI, $Serial, $InterfaceId
@@ -936,6 +953,9 @@ function Set-MerakiSwitchRoutingInterface() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .SYNOPSIS
     Set Meraki Switch Interface.
@@ -1095,7 +1115,7 @@ function Get-MerakiSwitchRoutingInterfaceDHCP() {
 Set-Alias -Name GMSWRoutIntDHCP -value Get-MerakiSwitchRoutingInterfaceDHCP -option ReadOnly
 
 function Set-MerakiSwitchRoutingInterfaceDhcp() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(
             Mandatory,
@@ -1148,6 +1168,7 @@ function Set-MerakiSwitchRoutingInterfaceDhcp() {
     }
 
     Process {
+    	if ($pscmdlet.ShouldProcess("switch $Serial for interface $InterfaceId")){
 
         $Uri = "{0}/devices/{1}/switch/routing/interface/{2}/dhcp" -f $BaseURI, $Serial, $InterfaceId
 
@@ -1158,6 +1179,7 @@ function Set-MerakiSwitchRoutingInterfaceDhcp() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
+		}
     }
     <#
     .SYNOPSIS
@@ -1318,7 +1340,7 @@ function Add-MerakiSwitchRoutingStaticRoute() {
 }
 
 function Set-MerakiSwitchRoutingStaticRoute() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$Serial,
@@ -1330,7 +1352,9 @@ function Set-MerakiSwitchRoutingStaticRoute() {
         [switch]$AdvertiseViaOspfEnabled,
         [switch]$PreferOverOspfRoutesEnabled
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("switch $Serial for interface $InterfaceId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/devices/{1}/switch/routing/staticRoutes/{2}" -f $BaseUri, $Serial, $StaticRouteId
@@ -1350,6 +1374,9 @@ function Set-MerakiSwitchRoutingStaticRoute() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .SYNOPSIS
     Update a static route
@@ -1533,7 +1560,7 @@ function Add-MerakiSwitchLAG() {
 Set-Alias -Name Add-MerakiNetworkSwitchLAG -value Add-MerakiSwitchLAG -Option ReadOnly
 
 function Set-MerakiSwitchLAG() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
@@ -1541,7 +1568,9 @@ function Set-MerakiSwitchLAG() {
         [string]$LinkAggregationId,
         [hashtable[]]$SwitchPorts
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network $NetworkId with LinkAggregationId - $LinkAggregationId")){
     $Headers = Get-Headers
 
     $Uri = "{0}/networks/{1}/switch/linkAggregations/{2}" -f $BaseURI. $NetworkId, $LinkAggregationId
@@ -1560,6 +1589,9 @@ function Set-MerakiSwitchLAG() {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .SYNOPSIS
     MOdify a Link Aggregation Port
@@ -1672,7 +1704,7 @@ set-alias -Name GMSwStack -Value Get-MerakiSwitchStack
 Set-Alias -Name Get-MerakiNetworkSwitchStacks -Value Get-MerakiSwitchStack -Option ReadOnly
 
 function New-MerakiSwitchStack() {
-    [CmdletBinding(DefaultParameterSetName = 'default')]
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
     Param(
         [Parameter(Mandatory = $true)]        
         [string]$NetworkId,
@@ -1681,7 +1713,9 @@ function New-MerakiSwitchStack() {
         [Parameter(Mandatory = $true)]
         [string[]]$Serials
     )
-
+    begin{}
+    process{
+    	if ($pscmdlet.ShouldProcess("network $NetworkId | $Name, serials $($Serials -join ',')")){
     $Headers = Get-Headers
 
     $Uri = "{0}/networks/{1}/switch/stacks" -f $BaseURI, $NetworkId
@@ -1700,6 +1734,9 @@ function New-MerakiSwitchStack() {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
     }
+    	}
+    }
+    end{}
     <#
     .SYNOPSIS
     Create a new Switch Stack.
