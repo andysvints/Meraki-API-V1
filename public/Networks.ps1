@@ -3,8 +3,8 @@ using namespace System.Collections.Generic
 
 #region Networks
 function Get-MerakiNetwork() {
-    [CmdletBinding(DefaultParameterSetName='default')]
-    Param(
+    [CmdletBinding(DefaultParameterSetName = 'default')]
+    param(
         [Parameter(
             Mandatory = $true
         )]
@@ -19,7 +19,8 @@ function Get-MerakiNetwork() {
         $Response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
 
         return $Response
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -36,8 +37,8 @@ function Get-MerakiNetwork() {
 Set-Alias -Name GMNet -Value Get-MerakiNetwork -Option:ReadOnly
 
 function Set-MerakiNetwork() {
-    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess=$true)]
-    Param(
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess = $true)]
+    param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
         [Parameter(Mandatory = $true)]
@@ -47,30 +48,30 @@ function Set-MerakiNetwork() {
         [string[]]$Tags,
         [string]$EnrollmentString
     )
-    begin{}
-    process{
-    	if ($pscmdlet.ShouldProcess("network - $NetworkId with name $Name")){
-    $Headers = Get-Headers
+    begin {}
+    process {
+        if ($pscmdlet.ShouldProcess("network - $NetworkId with name $Name")) {
+            $Headers = Get-Headers
     
-    $Uri = "{0}/networks/{1}" -f $BaseURI, $NetworkId
+            $Uri = "{0}/networks/{1}" -f $BaseURI, $NetworkId
 
-    $_body = @{}
-    if ($Name) { $_body.Add("name", $Name) }
-    if ($TimeZone) { $_body.Add("timeZone", $TimeZone) }
-    if ($Notes) { $_body.Add("notes", $Notes) }
-    if ($Tags) { $_body.Add("tags", $Tags) }
-    if ($EnrollmentString) { $_body.Add("enrollmentString", $EnrollmentString) }
+            $_body = @{}
+            if ($Name) { $_body.Add("name", $Name) }
+            if ($TimeZone) { $_body.Add("timeZone", $TimeZone) }
+            if ($Notes) { $_body.Add("notes", $Notes) }
+            if ($Tags) { $_body.Add("tags", $Tags) }
+            if ($EnrollmentString) { $_body.Add("enrollmentString", $EnrollmentString) }
 
-    $body = $_body | ConvertTo-Json -Depth 5 -Compress
-    try {
-        $response = Invoke-RestMethod -Method Put -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
-        return $response        
-    }
-    catch {
-        $Ex = $_ | Format-ApiException
-        $PSCmdlet.ThrowTerminatingError($Ex)
-    }
-    <#
+            $body = $_body | ConvertTo-Json -Depth 5 -Compress
+            try {
+                $response = Invoke-RestMethod -Method Put -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
+                return $response        
+            }
+            catch {
+                $Ex = $_ | Format-ApiException
+                $PSCmdlet.ThrowTerminatingError($Ex)
+            }
+            <#
     .SYNOPSIS
     Modify a network
     .DESCRIPTION
@@ -91,9 +92,9 @@ function Set-MerakiNetwork() {
     .OUTPUTS
     A network object
     #>
-    	}
+        }
     }
-    end{}
+    end {}
 }
 
 function Remove-MerakiNetwork() {
@@ -102,7 +103,7 @@ function Remove-MerakiNetwork() {
         DefaultParameterSetName = 'default',
         ConfirmIMpact = 'High'
     )]
-    Param(
+    param(
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -117,11 +118,12 @@ function Remove-MerakiNetwork() {
 
     $Network = Get-MerakiNetwork -networkID $Id
 
-    if ($PSCmdlet.ShouldProcess("Network $($Network.Name). This cannot be undone!", "DELETE")){
+    if ($PSCmdlet.ShouldProcess("Network $($Network.Name). This cannot be undone!", "DELETE")) {
         try {
             $response = Invoke-RestMethod -Method Delete -Uri $Uri -Headers $Headers
             return $response
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -138,7 +140,7 @@ function Remove-MerakiNetwork() {
 
 function Connect-MerakiNetworkToTemplate() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
         [Parameter(Mandatory = $true)]
@@ -158,7 +160,7 @@ function Connect-MerakiNetworkToTemplate() {
 
     $_Body = @{
         "configTemplateId" = $ConfigTemplateId
-        "autoBind" = $AutoBind.IsPresent
+        "autoBind"         = $AutoBind.IsPresent
     }
     $body = $_Body | ConvertTo-Json -Compress
     try {
@@ -192,7 +194,7 @@ function Disconnect-MerakiNetworkFromTemplate() {
         SupportsShouldProcess,
         DefaultParameterSetName = 'default',
         ConfirmImpact = 'High')]
-    Param(
+    param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId,
         [switch]$RetainConfigs
@@ -203,16 +205,17 @@ function Disconnect-MerakiNetworkFromTemplate() {
     $Uri = "{0}/networks/{1}/unbind" -f $BaseURI, $NetworkId
 
     if ($RetainConfigs.IsPresent) {
-        $body = @{"retainConfigs" = "true"} | ConvertTo-Json -Compress
+        $body = @{"retainConfigs" = "true" } | ConvertTo-Json -Compress
     }
 
     try {
         $NetworkName = (Get-MerakiNetwork -networkID $NetworkId).Name
-        If ($PSCmdlet.ShouldProcess($NetworkName, 'UnBind')) {
+        if ($PSCmdlet.ShouldProcess($NetworkName, 'UnBind')) {
             $response = Invoke-RestMethod -Method POST -Uri $Uri -Headers $Header -Body $body -PreserveAuthorizationOnRedirect
             return $response
         }
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -237,7 +240,7 @@ function Split-MerakiNetwork() {
         SupportsShouldProcess, 
         DefaultParameterSetName = 'default',
         ConfirmImpact = 'High')]
-    Param(
+    param(
         [Parameter(Mandatory = $true)]
         [string]$NetworkId
     )
@@ -252,7 +255,8 @@ function Split-MerakiNetwork() {
         try {
             $response = Invoke-RestMethod -Method POST -Uri $Uri -Headers $Header -PreserveAuthorizationOnRedirect
             return $response
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -274,27 +278,28 @@ function Split-MerakiNetwork() {
 function Get-MerakiNetworkDevice () {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiNetworkDevices')]
-    Param (
+    param (
         [Parameter(
-            Mandatory   = $true,
+            Mandatory = $true,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $True)]
         [Alias('NetworkId')]
         [string]$id
     )
 
-    Begin {
+    begin {
 
         $Headers = Get-Headers
     }
 
-    Process {
+    process {
     
         $Uri = "{0}/networks/{1}/devices" -f $BaseURI, $id
         try {
             $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
             return $response
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -315,7 +320,7 @@ Set-Alias -Name GMNetDevs -Value Get-MerakiNetworkDevices -Option ReadOnly
 function Get-MerakiNetworkEvent() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiNetworkEvents')]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
@@ -337,13 +342,13 @@ function Get-MerakiNetworkEvent() {
         [string]$clientMac,
         [string]$smDeviceName,
         [string]$smDeviceMac,
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(3,1000)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(3, 1000)]
         [int]$PerPage,
         [int]$Pages = 1
     )
 
-    Begin {
+    begin {
 
         $Headers = Get-Headers
 
@@ -351,49 +356,49 @@ function Get-MerakiNetworkEvent() {
         $Query = "?productType={0}" -f $ProductType
 
         if ($PerPage) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}perPage={1}" -f $Query, $PerPage
         }
 
         if ($IncludedEventTypes) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}includedEventTypes[]={1}" -f $Query, ($IncludedEventTypes -join ',')
         }
 
         if ($ExcludedEventTypes) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}excludedEventTypes[]={1}" -f $Query, ($ExcludedEventTypes -join ',')
         }
 
         if ($deviceMac) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}deviceMac={1}" -f $Query, $deviceMac
         }
 
         if ($deviceSerial) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}deviceSerial={1}" -f $Query, $deviceSerial
         }
 
         if ($clientIP) {
-            if ($Query) {Query += '&'} 
+            if ($Query) { Query += '&' } 
             $Query = "{0}deviceIP={1}" -f $Query, $deviceSerial
         }
 
         if ($smDeviceMac) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}smDeviceMac={1}" -f $Query, $smDeviceMac
         }
 
         if ($smDeviceName) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}smDeviceName={1}" -f $Query, $smDeviceName
         }
 
         $Results = [List[PsObject]]::New()
     }
 
-    Process {
+    process {
         $Uri = "{0}/networks/{1}/events{2}" -f $BaseURI, $id, $Query
 
         try {
@@ -417,14 +422,16 @@ function Get-MerakiNetworkEvent() {
                         if ($page -gt $Pages) {
                             $done = $true
                         }
-                    } else {
+                    }
+                    else {
                         $done = $true
                     }
                 } until ($done)
             }
 
             return $Results.ToArray() | Sort-Object occurredAt
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -496,13 +503,13 @@ function Get-MerakiNetworkEvent() {
     #>
 }
 
-Set-Alias -Name GMNetEvents -value Get-MerakiNetworkEvents -Option ReadOnly
+Set-Alias -Name GMNetEvents -Value Get-MerakiNetworkEvents -Option ReadOnly
 
 
 function Get-MerakiNetworkEventType() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiNetworkEventTypes')]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
@@ -518,7 +525,8 @@ function Get-MerakiNetworkEventType() {
         $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
 
         return $response
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -537,7 +545,7 @@ Set-Alias -Name GMNetET -Value Get-MerakiNetworkEventTypes -Option ReadOnly
 function Get-MerakiNetworkClient () {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiNetworkClients')]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
@@ -546,32 +554,32 @@ function Get-MerakiNetworkClient () {
         [Alias("NetworkId")]
         [string]$id,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,31)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 31)]
         [Parameter(
             Mandatory = $false,
             ParameterSetName = 'timeparts'
         )]
         [decimal]$Days,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,24)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 24)]
         [Parameter(
             Mandatory = $false,
             ParameterSetName = 'timeparts'
         )]
         [int]$Hours,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,60)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 60)]
         [Parameter(
             Mandatory = $false,
             ParameterSetName = 'timeparts'
         )]
         [int]$Minutes,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,60)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 60)]
         [Parameter(
             Mandatory = $false,
             ParameterSetName = 'timeparts'
@@ -590,35 +598,35 @@ function Get-MerakiNetworkClient () {
         )]
         [string]$TimeSpan,
 
-        [ValidateScript({$_ -is [int]})]
+        [ValidateScript({ $_ -is [int] })]
         [int]$PerPage = 5000,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(0,1000)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(0, 1000)]
         [int]$Pages = 1,
 
-        [ValidateSet("Offline","Online")]
+        [ValidateSet("Offline", "Online")]
         [string]$Statuses,
 
-        [ValidateScript({$_ -match "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})|([0-9a-fA-F]{4}\\.[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4})$"})]
+        [ValidateScript({ $_ -match "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})|([0-9a-fA-F]{4}\\.[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4})$" })]
         [string]$Mac,
 
-        [ValidateScript({$_ -match "\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z"})]
+        [ValidateScript({ $_ -match "\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z" })]
         [string]$IP,
 
         [string]$PskGroup,
         [string]$OS,
         [string]$Description,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,4096)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 4096)]
         [string]$VLAN,
 
         [string[]]$recentDeviceConnections,
 
         [switch]$ToLocalTime
     )
-    Begin {          
+    begin {          
 
         $Results = [List[PsObject]]::New()
         $Headers = Get-Headers
@@ -627,7 +635,7 @@ function Get-MerakiNetworkClient () {
             $Query += "t0={0}" -f ($_startDate.ToString("O"))
         }
         if ($endDate) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}t1={1}" -f $Query, ($EndDate.ToString("O"))
         }
 
@@ -640,7 +648,7 @@ function Get-MerakiNetworkClient () {
         }
 
         if ($Hours) {
-            $tsSeconds +=  [timespan]::FromHours($hours).TotalSeconds
+            $tsSeconds += [timespan]::FromHours($hours).TotalSeconds
         }
 
         if ($Minutes) {
@@ -656,47 +664,47 @@ function Get-MerakiNetworkClient () {
         }
 
         if ($tsSeconds -gt 0) {
-            if ($query) { $Query += "&"}
+            if ($query) { $Query += "&" }
             $Query = "{0}timespan={1}" -f $Query, $tsSeconds
         }
 
         if ($Statuses) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}statuses={1}" -f $Query, $Statuses
         }
         if ($Mac) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}mac={1}" -f $Query, $Mac
         }
         if ($IP) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}ip={1}" -f $Query, $IP
         }
         if ($OS) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}os={1}" -f $Query, $OS
         }
         if ($Description) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}description={1}" -f $query, $Description
         }
         if ($VLAN) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}vlan={1}" -f $Query, $VLAN
         }
         if ($recentDeviceConnections) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}recentDeviceConnections={1}" -f $Query, $recentDeviceConnections
         }
 
         if ($PerPage) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}perPage={1}" -f $Query, $PerPage
         }
     
-   }
+    }
     
-    Process {
+    process {
         $Uri = "{0}/networks/{1}/clients" -f $BaseURI, $Id
         if ($Query) {
             $Uri += "?{0}" -f $Query
@@ -723,19 +731,21 @@ function Get-MerakiNetworkClient () {
                         if ($page -gt $Pages) {
                             $done = $true
                         }
-                    } else {
+                    }
+                    else {
                         $done = $true
                     }
                 } until ($done)
             }
 
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
     }
 
-    End {
+    end {
         $Results | ForEach-Object {
             if ($null -eq $_.description) {
                 $_.description = $_.mac
@@ -793,7 +803,7 @@ Set-Alias -Name GMNetClients -Value Get-MerakiNetworkClients -Option ReadOnly
 
 function Get-MerakiNetworkClientApplicationUsage() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipelineByPropertyName = $true
@@ -803,38 +813,38 @@ function Get-MerakiNetworkClientApplicationUsage() {
 
         [string]$Clients,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(0,14)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(0, 14)]
         [int]$SSIDNumber,
 
-        [ValidateScript({$_ -is [DateTime]})]
+        [ValidateScript({ $_ -is [DateTime] })]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfiles', Mandatory)]  
+        [Parameter(ParameterSetName = 'datesWithProfiles', Mandatory)]  
         [DateTime]$StartDate,
 
-        [ValidateScript({$_ -is [DateTime]})]
+        [ValidateScript({ $_ -is [DateTime] })]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfiles', Mandatory)] 
+        [Parameter(ParameterSetName = 'datesWithProfiles', Mandatory)] 
         [DateTime]$EndDate,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,31)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 31)]
         [Parameter(ParameterSetName = 'days', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithOrg', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithProfile', Mandatory)]
         [int]$Days,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateSet(3,1000)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateSet(3, 1000)]
         [int]$PerPage,
 
-        [ValidateScript({$_ -is [int]})]
+        [ValidateScript({ $_ -is [int] })]
         [int]$Pages = 1
     )
 
-    Begin {      
+    begin {      
 
         $Headers = Get-Headers
         
@@ -843,36 +853,36 @@ function Get-MerakiNetworkClientApplicationUsage() {
         }
 
         if ($Clients) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}clients = {1}" -f $Query, $Clients 
         }
     
         if ($SSIDNumber) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}ssidNumber={1}" -f $Query, $SSIDNumber
         }
         if ($StartDate) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}t0={1}" -f $Query, ($startDate.ToString("O"))
         }
         if ($EndDate) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}t1={1}" -f $Query, ($EndDate.ToString("O"))
         }
         if ($Days) {
             $Seconds = [timespan]::FromDays($Days).TotalSeconds
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}timespan={1}" -f $Query, $Seconds
         }
         if ($PerPage) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}perPage={1}" -f $Query, $PerPage
         }
 
         $Results = [List[PsObject]]::New()
     }
 
-    Process {
+    process {
         $Uri = "{0}/networks/{1}/clients/applicationUsage" -f $BaseURI, $Id
         if ($Query) {
             $Uri = "{1}?{1}" -f $Uri, $Query
@@ -899,13 +909,15 @@ function Get-MerakiNetworkClientApplicationUsage() {
                         if ($page -gt $Pages) {
                             $done = $true
                         }
-                    } else {
+                    }
+                    else {
                         $done = $true
                     }
                 } until ($done)
             }
             return $Results.ToArray()
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -944,7 +956,7 @@ Set-Alias -Name GMNetClientAppUsage -Value Get-MerakiNetworkClientApplicationUsa
 
 function Get-MerakiNetworkClientBandwidthUsage() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipelineByPropertyName = $true
@@ -952,37 +964,37 @@ function Get-MerakiNetworkClientBandwidthUsage() {
         [Alias('NetworkId')]
         [string]$id,
 
-        [ValidateScript({$_ -is [DateTime]})]
+        [ValidateScript({ $_ -is [DateTime] })]
         [Alias('StartTime')]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfiles', Mandatory)]  
+        [Parameter(ParameterSetName = 'datesWithProfiles', Mandatory)]  
         [datetime]$StartDate,
 
-        [ValidateScript({$_ -is [DateTime]})]
+        [ValidateScript({ $_ -is [DateTime] })]
         [Alias('EndTime')]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfiles', Mandatory)] 
+        [Parameter(ParameterSetName = 'datesWithProfiles', Mandatory)] 
         [datetime]$EndDate,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,31)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 31)]
         [Parameter(ParameterSetName = 'days', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithOrg', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithProfile', Mandatory)]
         [int]$Days,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(3,1000)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(3, 1000)]
         [int]$perPage,
 
-        [ValidateScript({$_ -is [int]})]
+        [ValidateScript({ $_ -is [int] })]
         [Int]$Pages
 
     )
 
-    Begin {
+    begin {
 
         $Headers = Get-Headers
 
@@ -992,23 +1004,23 @@ function Get-MerakiNetworkClientBandwidthUsage() {
             $Query = "t0={0}" -f ($StartDate.ToString("O"))
         }
         if ($EndDate) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}t1={1}" -f $Query, ($EndDate.ToString("O"))
         }
         if ($Days) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Seconds = [TimeSpan]::FromDays($Days).TotalSeconds
             $Query = "{0}timespan={1}" -f $Query, $Seconds
         }
         if ($perPage) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}perPage={1}" -f $Query, $perPage
         }
 
         $Results = [List[PsObject]]::New()
     }
 
-    Process {
+    process {
         $Uri = "{0}/networks/{1}/clients/bandwidthUsageHistory" -f $BaseURI, $Id
 
         if ($Query) {
@@ -1036,13 +1048,15 @@ function Get-MerakiNetworkClientBandwidthUsage() {
                         if ($page -gt $Pages) {
                             $done = $true
                         }
-                    } else {
+                    }
+                    else {
                         $done = $true
                     }
                 } until ($done)
             }
             return $Results.ToArray()
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -1073,7 +1087,7 @@ Set-Alias -Name GMNetCltBWUsage -Value Get-MerakiNetworkClientBandwidthUsage -Op
 
 function Get-MerakiNetworkTraffic() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -1081,15 +1095,15 @@ function Get-MerakiNetworkTraffic() {
         [Alias('NetworkId')]
         [string]$Id,
 
-        [ValidateScript({$_ -is [DateTime]})]
+        [ValidateScript({ $_ -is [DateTime] })]
         [Alias('StartTime')]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfiles', Mandatory)]  
+        [Parameter(ParameterSetName = 'datesWithProfiles', Mandatory)]  
         [datetime]$StartDate,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,31)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 31)]
         [Parameter(ParameterSetName = 'days', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithOrg', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithProfile', Mandatory)]
@@ -1099,7 +1113,7 @@ function Get-MerakiNetworkTraffic() {
         [string]$DeviceType = 'combined'
     )
 
-    Begin {
+    begin {
 
         if ($Days) {
             $Seconds = [TimeSpan]::FromDays($Days).TotalSeconds
@@ -1107,12 +1121,12 @@ function Get-MerakiNetworkTraffic() {
         }
 
         if ($StartDate) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}t0={1}" -f $Query, ($StartDate.ToString("O"))
         }
     }
 
-    Process {
+    process {
         $Uri = "{0}/networks/{1}/traffic" -f $BaseURI, $Id
 
         if ($Query) {
@@ -1122,7 +1136,8 @@ function Get-MerakiNetworkTraffic() {
         try {
             $response = Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
             return $response
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -1141,10 +1156,10 @@ function Get-MerakiNetworkTraffic() {
     #>
 }
 
-Function Get-MerakiNetworkSyslogServer() {
+function Get-MerakiNetworkSyslogServer() {
     [CmdletBinding()]
     [Alias('Get-MerakiNetworkSyslogServers')]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipelineByPropertyName
@@ -1163,11 +1178,12 @@ Function Get-MerakiNetworkSyslogServer() {
         $Uri = "{0}/networks/{1}/syslogServers" -f $BaseURI, $Id
 
         try {
-            $response = Invoke-RestMethod -Method Get -URI $Uri -Headers $Headers
+            $response = Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers
             $response.Servers | Add-Member -MemberType NoteProperty -Name NetworkId -Value $Id
             $response.Servers | Add-Member -MemberType NoteProperty -Name NetworkName -Value $PSItem.Name
             return $response.servers
-        } catch {
+        }
+        catch {
             throw $_
         }
     }
@@ -1184,9 +1200,9 @@ Function Get-MerakiNetworkSyslogServer() {
 }
 
 function Set-MerakiNetworkSyslogServer() {
-    [CmdletBinding(SupportsShouldProcess=$true)]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     [Alias('Set-MerakiNetworkSyslogServers')]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipelineByPropertyName
@@ -1222,8 +1238,8 @@ function Set-MerakiNetworkSyslogServer() {
                 $Port = 514
             }
             $syslogServer = [PSCustomObject]@{
-                host = $Server
-                port = $Port
+                host  = $Server
+                port  = $Port
                 roles = $Roles
             }
             $SyslogServers += $syslogServer
@@ -1234,25 +1250,26 @@ function Set-MerakiNetworkSyslogServer() {
     }
 
     process {
-		if ($pscmdlet.ShouldProcess("network - $Id, syslog servers - $($Servers -join ',')")){
-        $Uri = "{0}/networks/{1}/syslogServers" -f $BaseURI, $Id
+        if ($pscmdlet.ShouldProcess("network - $Id, syslog servers - $($Servers -join ',')")) {
+            $Uri = "{0}/networks/{1}/syslogServers" -f $BaseURI, $Id
 
-        if ($PSItem.NetworkName) {
-            $NetworkName = $PSItem.NetworkName
-        }
-        else {
-            $NetworkName = $PSItem.Name
-        }
+            if ($PSItem.NetworkName) {
+                $NetworkName = $PSItem.NetworkName
+            }
+            else {
+                $NetworkName = $PSItem.Name
+            }
 
-        try {
-            $response = Invoke-RestMethod -Method Put -Uri $Uri -Headers $Headers -Body $Body
-            $response.Servers | Add-Member -MemberType NoteProperty -Name NetworkId -Value $Id
-            $response.Servers | Add-Member -MemberType NoteProperty -Name NetworkName -Value $NetworkName
-            return $response.Servers
-        } catch {
-            throw $_
+            try {
+                $response = Invoke-RestMethod -Method Put -Uri $Uri -Headers $Headers -Body $Body
+                $response.Servers | Add-Member -MemberType NoteProperty -Name NetworkId -Value $Id
+                $response.Servers | Add-Member -MemberType NoteProperty -Name NetworkName -Value $NetworkName
+                return $response.Servers
+            }
+            catch {
+                throw $_
+            }
         }
-		}
     }
     <#
     .SYNOPSIS
@@ -1282,9 +1299,9 @@ function Set-MerakiNetworkSyslogServer() {
 
 function Add-MerakiNetworkSyslogServer() {
     [CmdletBinding()]
-    Param(
+    param(
         [Parameter(
-            Mandatory= $true,
+            Mandatory = $true,
             ValueFromPipelineByPropertyName
         )]
         [Alias('NetworkId')]
@@ -1294,9 +1311,9 @@ function Add-MerakiNetworkSyslogServer() {
         [string]$Server,
 
         [Parameter(Mandatory = $false)]
-        [int]$Port=514,
+        [int]$Port = 514,
 
-         [Parameter(
+        [Parameter(
             Mandatory = $false
         )]
         [ValidateSet('Wireless event log', 'Appliance event log', 'Switch event log', 'Air Marshal events', 'Flows', 'URLs', 'IDS alerts', 'Security events')]
@@ -1307,8 +1324,8 @@ function Add-MerakiNetworkSyslogServer() {
         $Headers = Get-Headers
 
         $syslogServer = [psCustomObject]@{
-            host = $Server
-            port = $Port
+            host  = $Server
+            port  = $Port
             roles = $Roles
         }
       
@@ -1357,3 +1374,4 @@ function Add-MerakiNetworkSyslogServer() {
     Adds a syslog server with the specified roles to the network with Id "N_123456789".
     #>
 }
+

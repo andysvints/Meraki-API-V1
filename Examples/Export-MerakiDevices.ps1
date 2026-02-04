@@ -1,7 +1,7 @@
 using namespace System.Collections.Generic
-Param(
+param(
     [Parameter()]
-    [ValidateSet('MX','MR','MS','VMX')]
+    [ValidateSet('MX', 'MR', 'MS', 'VMX')]
     [string]$DeviceType,
 
     [Parameter()]
@@ -11,7 +11,7 @@ Param(
 )
 
 # If the output file path is not provided configure it here.
-if(-Not $OutputPath) {
+if (-not $OutputPath) {
     $OutputPath = "MerakiDevices_$(Get-Date -f 'yyyMMdd_HHmmss').csv"
 }
 
@@ -32,7 +32,7 @@ if ($ProfileName) {
 
 # Get the organization devices. These are all registered devices in the organization
 # Devices are filtered by Device Type. e.g. MX, MS, MR. if not provided all devices are returned.
-$OrgDevices = Get-MerakiOrganizationDevices @params | Where-Object {$_.model -like "$DeviceType*"}
+$OrgDevices = Get-MerakiOrganizationDevices @params | Where-Object { $_.model -like "$DeviceType*" }
 
 # Create a .Net list object. Populating a list object is faster than using the Powershell += operator to add items to an array.
 $DeviceList = [List[PsObject]]::New()
@@ -44,18 +44,18 @@ foreach ($Device in $OrgDevices) {
 
     # Create the Device Entry object.
     $DeviceEntry = [PSCustomObject]@{
-        serial = $Device.serial
-        NetworkID = $Network.Id
-        NetworkName = $Network.Name
-        ProductType = $Device.productType
-        Model = $Device.model
-        Location = $Device.Address
-        Latitude = $Device.lat
-        Longitude = $Device.lng
-        MAC = $Device.mac
+        serial          = $Device.serial
+        NetworkID       = $Network.Id
+        NetworkName     = $Network.Name
+        ProductType     = $Device.productType
+        Model           = $Device.model
+        Location        = $Device.Address
+        Latitude        = $Device.lat
+        Longitude       = $Device.lng
+        MAC             = $Device.mac
         ConfigUpdatedAt = $Device.ConfigurationUpdatedAt
-        Firmware = $Device.Firmware
-        SoftwareVersion = ($Device.details.Where({$_.Name -eq 'Running software version'})).value
+        Firmware        = $Device.Firmware
+        SoftwareVersion = ($Device.details.Where({ $_.Name -eq 'Running software version' })).value
     }
 
     # Add the DeviceEntry to the DeviceList.
@@ -63,4 +63,5 @@ foreach ($Device in $OrgDevices) {
 }
 
 # Export the DeviceList to a CSV file.
-$DeviceList.ToArray() | Export-csv -Path $OutputPath
+$DeviceList.ToArray() | Export-Csv -Path $OutputPath
+

@@ -5,7 +5,7 @@ using namespace System.Collections.Generic
 
 function Get-MerakiSSID() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName)]
@@ -14,11 +14,11 @@ function Get-MerakiSSID() {
         [Int]$Number
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
     }
 
-    Process {
+    process {
         $Uri = "[0]/networks/{1}/wireless/ssids" -f $BaseURI, $networkId
 
         if ($Number) {
@@ -32,7 +32,8 @@ function Get-MerakiSSID() {
             }
 
             return $response
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -54,8 +55,8 @@ Set-Alias -Name GMSSIDs -Value Get-MerakiSSID -Option ReadOnly
 Set-Alias -Name GMSSID -Value Get-MerakiSSID -Option ReadOnly
 
 function Set-MerakiSSID() {
-    [CmdletBinding(DefaultParameterSetName = 'default',SupportsShouldProcess=$true)]
-    Param (
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess = $true)]
+    param (
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -74,44 +75,44 @@ function Set-MerakiSSID() {
 
         [ValidateSet('wep', 'wpa')]
         [ValidateScript({
-            $_ -and $AuthMode -eq 'psk'
-        })]
+                $_ -and $AuthMode -eq 'psk'
+            })]
         [string]$EncryptionMode,
 
         [ValidateSet('WPA1 only', 'WPA1 and WPA2', 'WPA2 only', 'WPA3 Transition Mode', 'WPA3 only', 'WPA3 192-bit Security')]
         [ValidateScript({
-            $_ -and $EncryptionMode -eq 'wpa'
-        },ErrorMessage = "Parameter WpaEncryptionMode is on valid when Parameter EncryptionMode is set to 'wpa'")]
+                $_ -and $EncryptionMode -eq 'wpa'
+            }, ErrorMessage = "Parameter WpaEncryptionMode is on valid when Parameter EncryptionMode is set to 'wpa'")]
         [string]$WpaEncryptionMode,
 
         [ValidateSet('NAT mode', 'Bridge mode', 'Layer 3 roaming', 'Ethernet over GRE', 'Layer 3 roaming with a concentrator', 'VPN')]
         [string]$IpAssignmentMode,
 
         [ValidateSet({
-            $_ -and $IpAssignmentMode -eq 'Bridge mode'
-        })]
+                $_ -and $IpAssignmentMode -eq 'Bridge mode'
+            })]
         [switch]$LanIsolationEnabled,
         
         [ValidateScript({
-            $_ -and $AuthMode -eq 'psk'
-        }, ErrorMessage = "Parameter PassKey is only valid when Parameter AuthMode is set to 'psk'")]
+                $_ -and $AuthMode -eq 'psk'
+            }, ErrorMessage = "Parameter PassKey is only valid when Parameter AuthMode is set to 'psk'")]
         
         [string]$PassKey,
         
         [ValidateSet({
-            $_ -and ($IpAssignmentMode -in 'Layer 3 roaming with a concentrator','VPN')
-        }, ErrorMessage = "Parameter VlanId is only valid when parameter IpAssignmentMode is set to 'Layer 3 roaming with a concentrator' or 'VPN'")]
+                $_ -and ($IpAssignmentMode -in 'Layer 3 roaming with a concentrator', 'VPN')
+            }, ErrorMessage = "Parameter VlanId is only valid when parameter IpAssignmentMode is set to 'Layer 3 roaming with a concentrator' or 'VPN'")]
         [int]$VLanId,
         
         [ValidateScript({
-            $_ -and ($IpAssignmentMode -in 'Bridge mode','Layer 3 roaming')
-        }, ErrorMessage = "Parameter DefaultVlanId is only valid when parameter IpAssignmentMode is set to'Bridge mode' or 'Layer 3 roaming'")]
+                $_ -and ($IpAssignmentMode -in 'Bridge mode', 'Layer 3 roaming')
+            }, ErrorMessage = "Parameter DefaultVlanId is only valid when parameter IpAssignmentMode is set to'Bridge mode' or 'Layer 3 roaming'")]
         [int]$DefaultVlanId,
 
         [switch]$Dot11wEnabled,
         [ValidateScript({
-            $_ -and $Dot11wEnabled.IsPresent
-        }, ErrorMessage = "Parameter Dot11wRequired is only valid if parameter Dot11wEnabled is present")]
+                $_ -and $Dot11wEnabled.IsPresent
+            }, ErrorMessage = "Parameter Dot11wRequired is only valid if parameter Dot11wEnabled is present")]
         [switch]$Dot11wRequired,
 
         [switch]$Dot11rEnabled,
@@ -132,22 +133,22 @@ function Set-MerakiSSID() {
         [int]$RadiusAccountInterimInterval,
 
         [ValidateScript({
-            $_ -and ( ($AuthMode -eq 'open-with-radius') -and $LanIsolationEnabled )
-        }, ErrorMessage = "Parameter RadiusGuestVLANId only valie when parameter AuthMode - set to 'open-with-radius' and parameter LanIsolationEnabled is provided.")]
+                $_ -and ( ($AuthMode -eq 'open-with-radius') -and $LanIsolationEnabled )
+            }, ErrorMessage = "Parameter RadiusGuestVLANId only valie when parameter AuthMode - set to 'open-with-radius' and parameter LanIsolationEnabled is provided.")]
         [int]$RadiusGuestVlanId,
 
-        [ValidateRange(1,5)]
+        [ValidateRange(1, 5)]
         [int]$RadiusServerAttemptsLimit,
 
-        [ValidateRange(1,10)]
+        [ValidateRange(1, 10)]
         [int]$RadiusServerTimeout,
 
         [ValidateSet('Dual band operation', '5 GHz band only', 'Dual band operation with Band Steering')]
         [string]$BandSelection,
 
         [ValidateScript({
-            $_ -and ($IpAssignmentMode -in 'Layer 3 roaming with a concentrator','VPN')
-        }, ErrorMessage = "Parameter ConcentratorNetworkId in only valid when parameter IpAssignmentMode is set to 'Layer 3 roaming with a concentrator' or 'VPN'.")]
+                $_ -and ($IpAssignmentMode -in 'Layer 3 roaming with a concentrator', 'VPN')
+            }, ErrorMessage = "Parameter ConcentratorNetworkId in only valid when parameter IpAssignmentMode is set to 'Layer 3 roaming with a concentrator' or 'VPN'.")]
         [string]$ConcentratorNetworkId,
 
         [ValidateSet('access disabled', 'access enabled')]
@@ -168,16 +169,16 @@ function Set-MerakiSSID() {
         [string]$RadiusLoadBalancingPolicy,
 
         [ValidateScript({
-            $_ -and $IpAssignmentMode -eq 'vpn'
-        }, ErrorMessage="Parameter SecondaryConcentratorNetworkId is only valid when the parameter IpAssignmentMode is set to 'vpn'")]
+                $_ -and $IpAssignmentMode -eq 'vpn'
+            }, ErrorMessage = "Parameter SecondaryConcentratorNetworkId is only valid when the parameter IpAssignmentMode is set to 'vpn'")]
         [string]$SecondaryConcentratorNetworkId,
 
         [switch]$AdultContentFilteringEnabled,
         [switch]$AvailableOnAllAPs,
 
         [ValidateScript({
-            $_ -and $IpAssignmentMode -eq 'vpn'
-        }, ErrorMessage = "Parameter DisassociateClientOnVpnFailover is only valid when parameter IpAssignmentMode is set to 'vpn'")]
+                $_ -and $IpAssignmentMode -eq 'vpn'
+            }, ErrorMessage = "Parameter DisassociateClientOnVpnFailover is only valid when parameter IpAssignmentMode is set to 'vpn'")]
         [switch]$DisassociateClientOnVpnFailover,
 
         [switch]$Disabled,
@@ -186,12 +187,12 @@ function Set-MerakiSSID() {
         [switch]$RadiusAccountingEnabled,
         [switch]$RadiusCoaEnabled,
         [ValidateScript({
-            $_ -and ($AuthMode -eq 'open' -and $IpAssignmentMode -ne 'NAT mode')
-        }, ErrorMessage = "Parameter RadiusGuestVlanEnabled is only valid when AUthMode is set to 'open' and IpAssignmentMode is not set to 'NAT Mode'")]
+                $_ -and ($AuthMode -eq 'open' -and $IpAssignmentMode -ne 'NAT mode')
+            }, ErrorMessage = "Parameter RadiusGuestVlanEnabled is only valid when AUthMode is set to 'open' and IpAssignmentMode is not set to 'NAT Mode'")]
         [switch]$RadiusGuestVlanEnabled,
         [ValidateScript({
-            $_ -and $IpAssignmentMode -ne 'NAT mode'
-        }, ErrorMessage = "Parameter RadiusOverride is only valid when parameter IpAssignmentMode is set to 'NAT mode")]
+                $_ -and $IpAssignmentMode -ne 'NAT mode'
+            }, ErrorMessage = "Parameter RadiusOverride is only valid when parameter IpAssignmentMode is set to 'NAT mode")]
         [switch]$RadiusOverride,
         [switch]$RadiusProxyEnabled,
         [switch]$RadiusTestingEnabled,
@@ -200,14 +201,14 @@ function Set-MerakiSSID() {
 
         [switch]$Hidden,
 
-        [ValidateSet(1,2,5.5,6,9,11,12,18,24,36,48,54)]
+        [ValidateSet(1, 2, 5.5, 6, 9, 11, 12, 18, 24, 36, 48, 54)]
         [number]$MinBitRate,
 
         [string[]]$AvailableTags,
 
         [ValidateScript({
-            $_ -and $SplashPage -eq 'Password-protected with Active Directory'
-        }, ErrorMessage = "Parameter ActiveDirectory is only valid when parameter SplashPage is set to 'Password-protected with Active Directory'")]
+                $_ -and $SplashPage -eq 'Password-protected with Active Directory'
+            }, ErrorMessage = "Parameter ActiveDirectory is only valid when parameter SplashPage is set to 'Password-protected with Active Directory'")]
         [PsObject]$ActiveDirectory,
 
         [PsObject]$DnsRewrite,
@@ -215,41 +216,41 @@ function Set-MerakiSSID() {
         [PsObject]$Gre,
 
         [ValidateScript({
-            $_ -and $SplashPage -eq 'Password-protected with LDAP'
-        }, ErrorMessage = "Parameter LDAP is only valid when parameter SplashPage is set to 'Password-protected with LDAP'")]
+                $_ -and $SplashPage -eq 'Password-protected with LDAP'
+            }, ErrorMessage = "Parameter LDAP is only valid when parameter SplashPage is set to 'Password-protected with LDAP'")]
         [PsObject]$LDAP,
 
         [ValidateScript({
-            $_ -and $AuthMode -eq '8021x-localradius'
-        }, ErrorMessage = "Parameter LocalRadius is only valid when parameter AUthMode is set to '8021x-localradius'")]
+                $_ -and $AuthMode -eq '8021x-localradius'
+            }, ErrorMessage = "Parameter LocalRadius is only valid when parameter AUthMode is set to '8021x-localradius'")]
         [PsObject]$LocalRadius,
 
         [PsObject]$NamedVlans,
 
         [ValidateScript({
-            $_ -and $SplashPage -eq 'Google OAuth'
-        }, ErrorMessage = "Parameter OAuth is only valid when parameter SplashPage is set to 'Google OAuth")]
+                $_ -and $SplashPage -eq 'Google OAuth'
+            }, ErrorMessage = "Parameter OAuth is only valid when parameter SplashPage is set to 'Google OAuth")]
         [PsObject]$OAuth,
 
         [switch]$SpeedBurstEnabled,
 
         [ValidateScript({
-            $_ -and $IpAssignmentMode -in 'Bridged mode','Layer 3 roaming'
-        }, ErrorMessage = "Parameter ApTagsAndVlanIds is only valid when parameter IpAssignmentMode is set to 'Bridged mode' or 'Later 3 roaming'")]
+                $_ -and $IpAssignmentMode -in 'Bridged mode', 'Layer 3 roaming'
+            }, ErrorMessage = "Parameter ApTagsAndVlanIds is only valid when parameter IpAssignmentMode is set to 'Bridged mode' or 'Later 3 roaming'")]
         [PsObject]$ApTagsAndVlanIds,
 
         [ValidateScript({
-            $_ -and ($AuthMode -in 'open-with-radius', '8021x-radius', 'ipsk-with-radius' -and $RadiusAccountingEnabled.IsPresent)
-        }, ErrorMessage = "Parameter RadiusAccountingServers is only valid when parameter AuthMode is set to 'open-with-radius', '8021x-radius' or 'ipsk-with-radius' and parameter RadiusAccountingEnabled is provided")]
+                $_ -and ($AuthMode -in 'open-with-radius', '8021x-radius', 'ipsk-with-radius' -and $RadiusAccountingEnabled.IsPresent)
+            }, ErrorMessage = "Parameter RadiusAccountingServers is only valid when parameter AuthMode is set to 'open-with-radius', '8021x-radius' or 'ipsk-with-radius' and parameter RadiusAccountingEnabled is provided")]
         [PsObject]$RadiusAccountingServers,
 
         [ValidateScript({
-            $_ -and $AuthMode -in 'open-with-radius', '8021x-radius', 'ipsk-with-radius'
-        }, ErrorMessage = "Parameter RadiusServers is only valid when parameter AuthMode is set to 'open-with-radius', '8021x-radius' or 'ipsk-with-radius'")]
+                $_ -and $AuthMode -in 'open-with-radius', '8021x-radius', 'ipsk-with-radius'
+            }, ErrorMessage = "Parameter RadiusServers is only valid when parameter AuthMode is set to 'open-with-radius', '8021x-radius' or 'ipsk-with-radius'")]
         [PsObject]$RadiusServers
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
 
         $_Body = @{}
@@ -269,11 +270,11 @@ function Set-MerakiSSID() {
         if ($IpAssignmentMode) {
             $_Body.Add("ipAssignmentMode", $IpAssignmentMode)
         }
-        if($LanIsolationEnabled) {
-            $_Body.Add("lanIsolationEnabled",$true)
+        if ($LanIsolationEnabled) {
+            $_Body.Add("lanIsolationEnabled", $true)
         }
-        if($PassKey) {
-            $_Body.Add("psk",$PassKey)
+        if ($PassKey) {
+            $_Body.Add("psk", $PassKey)
         }
         if ($VlanId) {
             $_Body.Add("vlanId", $VLanId)
@@ -294,12 +295,12 @@ function Set-MerakiSSID() {
             }
         }
         if ($SplashPage) {
-            $_Body.Add("SplashPage",$SplashPage)
+            $_Body.Add("SplashPage", $SplashPage)
         }
         if ($SplashGuestSponsorDomains) {
             $_Body.Add("splashGuestSponsorsDomains", $SplashGuestSponsorDomains)
         }
-        if($WalledGardenEnabled.IsPresent) {
+        if ($WalledGardenEnabled.IsPresent) {
             $_Body.Add("walledGardenEnabled", $true)
         }
         if ($WalledGardenRanges) {
@@ -308,7 +309,7 @@ function Set-MerakiSSID() {
         if ($PerClientBandwidthLimitDown) {
             $_Body.Add("perClientBandwidthLimitDown", $PerClientBandwidthLimitDown)
         }
-        if ($PerClientBandwidthLimitUp)  {
+        if ($PerClientBandwidthLimitUp) {
             $_Body.Add("perClientBandwidthLimitUp", $PerClientBandwidthLimitUp)
         }
         if ($PerSsidBandwidthLimitDown) {
@@ -367,7 +368,8 @@ function Set-MerakiSSID() {
         }
         if ($Disabled) {
             $_Body.Add("enabled", $false) 
-        } else {
+        }
+        else {
             $_Body.Add("enabled", $true)
         }
         if ($MandatoryDHCPEnabled) {
@@ -440,18 +442,19 @@ function Set-MerakiSSID() {
         $body = $_Body | ConvertTo-Json -Depth 10 -Compress
     }
 
-    Process {
-    	if ($pscmdlet.ShouldProcess("network $Id")){
-        $Uri = "{0}/networks/{1}/wireless/ssids/{2}" -f $BaseURI, $Id, $Number
+    process {
+        if ($pscmdlet.ShouldProcess("network $Id")) {
+            $Uri = "{0}/networks/{1}/wireless/ssids/{2}" -f $BaseURI, $Id, $Number
 
-        try {
-            $response = Invoke-RestMethod -Method Put -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
-            return $response
-        } catch {
-            $Ex = $_ | Format-ApiException
-            $PSCmdlet.ThrowTerminatingError($Ex)
+            try {
+                $response = Invoke-RestMethod -Method Put -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
+                return $response
+            }
+            catch {
+                $Ex = $_ | Format-ApiException
+                $PSCmdlet.ThrowTerminatingError($Ex)
+            }
         }
-		}
     }
     <#
     .DESCRIPTION
@@ -654,7 +657,7 @@ function Set-MerakiSSID() {
 
 function Get-MerakiSSIDIdentityPsk() {
     [CmdletBinding()]
-    Param(
+    param(
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -669,24 +672,25 @@ function Get-MerakiSSIDIdentityPsk() {
         [string]$IdentityPskId
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
     }
 
-    Process {
+    process {
         $Uri = "{0}/networks/{1}/wireless/ssids/{2}/identityPsks" -f $BaseURI, $Id, $Number
         if ($IdentityPskId) {
             $Uri = "{0}/{1}" -f $Uri, $IdentityPskId
         }
 
-        Try {
+        try {
             $response = Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
             $response | ForEach-Object {
                 $_ | Add-Member -MemberType NoteProperty -Name NetworkId -Value $Id
                 $_ | Add-Member -MemberType NoteProperty -Name Number -Value $Id
             }
             return $response
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -707,13 +711,13 @@ function Get-MerakiSSIDIdentityPsk() {
 
 function Add-MerakiSsidIdentityPsk() {
     [CmdletBinding()]
-    Param (
-         [Parameter(
-                Mandatory,
-                ValueFromPipelineByPropertyName
-            )]
-            [Alias('NetworkId')]
-            [string]$id,
+    param (
+        [Parameter(
+            Mandatory,
+            ValueFromPipelineByPropertyName
+        )]
+        [Alias('NetworkId')]
+        [string]$id,
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -727,12 +731,12 @@ function Add-MerakiSsidIdentityPsk() {
         [DateTime]$ExpiresAt
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
 
         $_Body = @{
-            name            = $Name
-            groupPolicyId   = $GroupPolicyId
+            name          = $Name
+            groupPolicyId = $GroupPolicyId
         }
 
         if ($Passphrase) {
@@ -748,7 +752,7 @@ function Add-MerakiSsidIdentityPsk() {
         $body = $_Body | ConvertTo-Json -Compress
     }
 
-    Process {
+    process {
         $Uri = "{0}/networks/{1}/wireless/ssids/{2}/identityPsks" -f $BaseUri, $Id, $Number
         
         try {
@@ -758,7 +762,8 @@ function Add-MerakiSsidIdentityPsk() {
                 $_ | Add-Member -MemberType NoteProperty -Name Number -Value $Number
             }
             return $response
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -786,8 +791,8 @@ function Add-MerakiSsidIdentityPsk() {
 }
 
 function Set-MerakiSsidIdentityPsk() {
-    [CmdletBinding(SupportsShouldProcess=$true)]
-    Param (
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param (
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -810,16 +815,16 @@ function Set-MerakiSsidIdentityPsk() {
         [datetime]$expiresAt
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
 
         $_Body = @{}
 
-        if ($Name) {$_Body.Add("name", $Name)}
-        if($GroupPolicyId) {$_Body.Add("groupPolicyId", $GroupPolicyId)}
+        if ($Name) { $_Body.Add("name", $Name) }
+        if ($GroupPolicyId) { $_Body.Add("groupPolicyId", $GroupPolicyId) }
         if ($PassPhrase) {
             $pPhase = ConvertFrom-SecureString -SecureString $PassPhrase -AsPlainText
-            $_Body.Add("passPhrase",$pPhase)
+            $_Body.Add("passPhrase", $pPhase)
         }
         if ($expiresAt) {
             $expiresAt_str = $expiresAt.ToString("MM/dd/yyyy, hh:mm:ss tt")
@@ -829,22 +834,23 @@ function Set-MerakiSsidIdentityPsk() {
         $body = $_Body | ConvertTo-Json -Compress        
     }
 
-    Process {
-    	if ($pscmdlet.ShouldProcess("network - $Id")){
-        $Uri = "{0}/networks/{1}/wireless/ssids/{2}/identityPsks/{3}" -f $BaseUri, $Id, $Number, $IdentityPskId
+    process {
+        if ($pscmdlet.ShouldProcess("network - $Id")) {
+            $Uri = "{0}/networks/{1}/wireless/ssids/{2}/identityPsks/{3}" -f $BaseUri, $Id, $Number, $IdentityPskId
 
-        try {
-            $response = Invoke-RestMethod -Method Put -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
-            $response | ForEach-Object {
-                $_ | Add-Member -MemberType NoteProperty -Name 'NetworkId' -Value $Id
-                $_ | Add-Member -MemberType NoteProperty -Name 'Number' -Value $Number
+            try {
+                $response = Invoke-RestMethod -Method Put -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
+                $response | ForEach-Object {
+                    $_ | Add-Member -MemberType NoteProperty -Name 'NetworkId' -Value $Id
+                    $_ | Add-Member -MemberType NoteProperty -Name 'Number' -Value $Number
+                }
+                return $response
             }
-            return $response
-        } catch {
-            $Ex = $_ | Format-ApiException
-            $PSCmdlet.ThrowTerminatingError($Ex)
+            catch {
+                $Ex = $_ | Format-ApiException
+                $PSCmdlet.ThrowTerminatingError($Ex)
+            }
         }
-		}
     }
     <#
     .DESCRIPTION
@@ -875,7 +881,7 @@ function Remove-MerakiSsidIdentityPsk() {
         SupportsShouldProcess, 
         ConfirmImpact = 'high'
     )]
-    Param (
+    param (
         [Parameter(Mandatory)]
         [string]$NetworkId,
         [Parameter(Mandatory)]
@@ -884,11 +890,11 @@ function Remove-MerakiSsidIdentityPsk() {
         [string]$IdentityPskId
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
     }
 
-    Process {
+    process {
         $Uri = "{0}/networks/{1}}/wireless/ssids/{2}/identityPsks/{3}" -f $BaseURI, $Id, $Number, $IdentityPskId
         $SsidName = (Get-MerakiSSID -Id $id -Number $Number).Name
         $NetworkName = (Get-MerakiNetwork -networkID $id).Name
@@ -896,9 +902,10 @@ function Remove-MerakiSsidIdentityPsk() {
             try {
                 $response = Invoke-RestMethod -Method Delete -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
                 return $response
-            } catch {
-            $Ex = $_ | Format-ApiException
-            $PSCmdlet.ThrowTerminatingError($Ex)
+            }
+            catch {
+                $Ex = $_ | Format-ApiException
+                $PSCmdlet.ThrowTerminatingError($Ex)
             }
         }
     }
@@ -917,7 +924,7 @@ function Remove-MerakiSsidIdentityPsk() {
 
 function Get-MerakiWirelessStatus() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
@@ -933,9 +940,10 @@ function Get-MerakiWirelessStatus() {
         $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
 
         return $response
-    } catch {
-            $Ex = $_ | Format-ApiException
-            $PSCmdlet.ThrowTerminatingError($Ex)
+    }
+    catch {
+        $Ex = $_ | Format-ApiException
+        $PSCmdlet.ThrowTerminatingError($Ex)
     }
     <#
     .SYNOPSIS
@@ -952,7 +960,7 @@ Set-Alias -Name GMWirelessStat -Value Get-MerakiWirelessStatus
 function Get-MerakiNetworkClientConnectionStat() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiNetworkClientConnectionStats')]
-    Param(
+    param(
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -965,40 +973,40 @@ function Get-MerakiNetworkClientConnectionStat() {
         )]
         [string]$ClientId,
 
-        [ValidateScript({$_ -is [datetime]})]
+        [ValidateScript({ $_ -is [datetime] })]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfiles', Mandatory)] 
+        [Parameter(ParameterSetName = 'datesWithProfiles', Mandatory)] 
         [datetime]$StartDate,
 
-        [ValidateScript({$_ -is [datetime]})]
+        [ValidateScript({ $_ -is [datetime] })]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfile', Mandatory)]
+        [Parameter(ParameterSetName = 'datesWithProfile', Mandatory)]
         [DateTime]$EndDate,
 
         [Parameter(ParameterSetName = 'days', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithOrg', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithProfile', Mandatory)]
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,31)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 31)]
         [int]$Days,
 
         [ValidateSet('2.5', '5', '6')]
         [string]$Band,
 
-        [ValidateRange(0,14)]
-        [ValidateScript({$_ -is [int]})]
+        [ValidateRange(0, 14)]
+        [ValidateScript({ $_ -is [int] })]
         [string]$SSID,
 
         [ValidateScript({ $_ -is [int] })]
-        [ValidateRange(1,4096)]
+        [ValidateRange(1, 4096)]
         [int]$VLAN,
 
         [string]$APTag
     )
 
-    Begin {
+    begin {
 
         $Headers = Get-Headers
 
@@ -1008,37 +1016,38 @@ function Get-MerakiNetworkClientConnectionStat() {
             $Query = "t0={0}" -f ($StartDate.ToString("O"))
         }
         if ($EndDate) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}t1={1}" -f $Query, ($endDate.ToString("O"))
         }
         if ($Days) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Seconds = [timespan]::FromDays($Days).TotalSeconds
             $Query = "{0}timespan={1}" -f $Query, $Seconds
         }
         if ($Band) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}band={1}" -f $Query, $Band
         }
         if ($SSID) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}ssid={1}" -f $Query, $SSID
         }
         if ($VLAN) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}vlan={1}" -f $Query, $VLAN
         }
         if ($APTag) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}apTag={1}" -f $Query, $APTag
         }
     }
 
-    Process {
+    process {
         $Uri = "{0}/network/{1}/wireless/clients" -f $BaseURI, $Id
         if ($ClientId) {
             $Uri = "{0}/{2}/connectionStats" -f $Uri, $ClientId
-        } else {
+        }
+        else {
             $Uri = "{0}/connectionStats" -f $Uri
         }
 
@@ -1106,8 +1115,8 @@ function Get-MerakiWirelessAirMarshal() {
         return $response
     }
     catch {
-            $Ex = $_ | Format-ApiException
-            $PSCmdlet.ThrowTerminatingError($Ex)
+        $Ex = $_ | Format-ApiException
+        $PSCmdlet.ThrowTerminatingError($Ex)
     }
 
     <#
@@ -1122,7 +1131,7 @@ function Get-MerakiWirelessAirMarshal() {
 
 function Get-MerakiWirelessUsageHistory() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -1130,23 +1139,23 @@ function Get-MerakiWirelessUsageHistory() {
         [Alias('NetworkId')]
         [string]$Id,
 
-        [ValidateScript({$_ -is [datetime]})]
+        [ValidateScript({ $_ -is [datetime] })]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfiles', Mandatory)]                
+        [Parameter(ParameterSetName = 'datesWithProfiles', Mandatory)]                
         [datetime]$StartDate,
 
-        [ValidateScript({$_ -is [datetime]})]
+        [ValidateScript({ $_ -is [datetime] })]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfile', Mandatory)]
+        [Parameter(ParameterSetName = 'datesWithProfile', Mandatory)]
         [datetime]$EndDate,
 
         [Parameter(ParameterSetName = 'days', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithOrg', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithProfile', Mandatory)]
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,31)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 31)]
         [int]$Days,
 
         [ValidateSet(300, 600, 1200, 3600, 14400, 86400)]
@@ -1170,11 +1179,11 @@ function Get-MerakiWirelessUsageHistory() {
         [ValidateSet('2.4', '5', '6')]
         [string]$Band,
 
-        [ValidateSet(0,14)]
+        [ValidateSet(0, 14)]
         [Int]$SsidNumber
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
 
         if ($StartDate) {
@@ -1182,59 +1191,59 @@ function Get-MerakiWirelessUsageHistory() {
         }
 
         if ($EndDate) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}t1={1}" -f $Query, ($EndDate.ToString("0"))
         }
 
         if ($Days) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Seconds = ([TimeSpan]::FromDays($DaysPast)).TotalSeconds    
             $Query = "{0}timespan={1}" -f $Query, $Seconds
         }
 
-        If ($Resolution) {
-            if ($Query) {$Query += "&"}
+        if ($Resolution) {
+            if ($Query) { $Query += "&" }
             $Query = "{0}resolution={1}" -f $Query, $Resolution
         }
         if ($AutoResolution) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}autoResolution=true" -f $Query
         }
         if ($APTag) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}apTag={1}" -f $Query, $APTag
         }
         if ($Band) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}band={1}" -f $Query, $Band
         }
         if ($SsidNumber) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}ssid={1}" -f $Query, $SsidNumber
         }
 
         if ($ClientId) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}clientId={1}" -f $Query, $ClientId
         }
 
         if ($Serial) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}serial={1}" -f $Query, $Serial
         }
     }
         
-    Process {
+    process {
 
         $Uri = "{0}/networks/{1}/wireless/usageHistory" -f $BaseURI, $Id
 
         if ($ClientId) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}clientId={1}" -f $Query, $ClientId
         }
 
         if ($Serial) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}deviceSerial={1}" -f $Query, $Serial
         }
 
@@ -1281,36 +1290,36 @@ function Get-MerakiWirelessUsageHistory() {
 
 function Get-MerakiWirelessDataRateHistory() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
         )]
         [Alias('NetworkId')]
         [string]$Id,
-        [ValidateScript({$_ -is [datetime]})]
+        [ValidateScript({ $_ -is [datetime] })]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfiles', Mandatory)]  
+        [Parameter(ParameterSetName = 'datesWithProfiles', Mandatory)]  
         [ValidateScript({
-            ((Get-Date) - $_).Days -le 31
-        })]
+                ((Get-Date) - $_).Days -le 31
+            })]
         [datetime]$StartDate,
 
-        [ValidateScript({$_ -is [datetime]})]
+        [ValidateScript({ $_ -is [datetime] })]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfile', Mandatory)]
+        [Parameter(ParameterSetName = 'datesWithProfile', Mandatory)]
         [ValidateSet({
-            ($_ - $StartDate).Days -le 31
-        })]
+                ($_ - $StartDate).Days -le 31
+            })]
         [datetime]$EndDate,
 
         [Parameter(ParameterSetName = 'days', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithOrg', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithProfile', Mandatory)]
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,31)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 31)]
         [int]$Days,
 
         [ValidateSet(300, 600, 1200, 3600, 14400, 86400)]
@@ -1323,14 +1332,14 @@ function Get-MerakiWirelessDataRateHistory() {
         [string]$Serial,
         [string]$APTag,
 
-        [ValidateSet('2.4','5','6')]
+        [ValidateSet('2.4', '5', '6')]
         [string]$Band,
-        [ValidateSet(0,24)]
+        [ValidateSet(0, 24)]
         [Int]$SsidNumber,
         [switch]$ExcludeNoData
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
         if ($Days) {
             $Seconds = ([Timespan]::FromDays($DaysPast)).TotalSeconds    
@@ -1338,7 +1347,7 @@ function Get-MerakiWirelessDataRateHistory() {
         }
 
         if ($StartDate) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}t0={1}" -f $Query, ($StartDate.ToSingle("O"))
         }
 
@@ -1347,38 +1356,38 @@ function Get-MerakiWirelessDataRateHistory() {
         }
 
         if ($ClientId) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}clientId={1}" -f $Query, $ClientId
         }
 
         if ($Serial) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}deviceSerial={1}" -f $Query, $Serial
         }
 
-        If ($Resolution) {
-            if ($Query) {$Query += '&'}
+        if ($Resolution) {
+            if ($Query) { $Query += '&' }
             $Query = "{0}resolution={1}" -f $qParams, $Resolution
         }
         if ($AutoResolution) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}autoResolution=true" -f $Query
         }
         if ($APTag) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}apTag={1}" -f $Query, $APTag
         }
         if ($Band) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}band={1}" -f $Query, $Band            
         }
         if ($Ssid) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Query = "{0}ssid={1}" -f $Query, $SsidNumber
         }
     }
 
-    Process {
+    process {
         
 
         $Uri = "{0}/networks/{1}/wireless/dataRateHistory" -f $BaseURI, $Id
@@ -1390,8 +1399,9 @@ function Get-MerakiWirelessDataRateHistory() {
         try {
             $response = Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
             if ($ExcludeNoData) {
-                $result = $response |Where-Object {$null -ne $_.averageKbps -and $null -ne $_.downloadKbps -and $null -ne $_.uploadKbps}
-            } else {
+                $result = $response | Where-Object { $null -ne $_.averageKbps -and $null -ne $_.downloadKbps -and $null -ne $_.uploadKbps }
+            }
+            else {
                 $result = $response
             }
             $result | ForEach-Object {
@@ -1403,7 +1413,8 @@ function Get-MerakiWirelessDataRateHistory() {
                 }
             }
             return $result
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -1437,4 +1448,5 @@ function Get-MerakiWirelessDataRateHistory() {
     Exclude items that have no data.
     #>
 }
+
 

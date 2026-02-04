@@ -2,7 +2,7 @@
 
 function Get-MerakiDevice() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
@@ -18,7 +18,8 @@ function Get-MerakiDevice() {
         $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
 
         return $response
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -35,8 +36,8 @@ function Get-MerakiDevice() {
 Set-Alias -Name GMNetDev -Value Get-MerakiDevice -Option ReadOnly
 
 function Start-MerakiDeviceBlink() {
-    [CmdletBinding(DefaultParameterSetName = 'default',SupportsShouldProcess=$true)]
-    Param(
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess = $true)]
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
@@ -47,33 +48,34 @@ function Start-MerakiDeviceBlink() {
         [int]$Duty,
         [int]$Period
     )
-    begin{}
-    process{
-    	if ($pscmdlet.ShouldProcess("device with serial - $serial")){
-    $Uri = "{0}/devices/{1}/blinkLeds" -f $BaseURI, $serial
-    $Headers = Get-Headers
+    begin {}
+    process {
+        if ($pscmdlet.ShouldProcess("device with serial - $serial")) {
+            $Uri = "{0}/devices/{1}/blinkLeds" -f $BaseURI, $serial
+            $Headers = Get-Headers
 
-    $psBody = @{}
-    if ($Duration) {
-        $psBody.Add("duration", $Duration)
-    }
-    if ($Duty) {    
-        $psBody.Add("duty", $Duty)
-    }
-    if ($Period) {
-        $psBody.aDD("period", $Period)
-    }
-    $body = $psBody | ConvertTo-Json
+            $psBody = @{}
+            if ($Duration) {
+                $psBody.Add("duration", $Duration)
+            }
+            if ($Duty) {    
+                $psBody.Add("duty", $Duty)
+            }
+            if ($Period) {
+                $psBody.aDD("period", $Period)
+            }
+            $body = $psBody | ConvertTo-Json
 
-    try {
-        $response = Invoke-RestMethod -Method GET -Uri $Uri -Body $body -Headers $Headers -PreserveAuthorizationOnRedirect
+            try {
+                $response = Invoke-RestMethod -Method GET -Uri $Uri -Body $body -Headers $Headers -PreserveAuthorizationOnRedirect
 
-        return $response
-    } catch {
-        $Ex = $_ | Format-ApiException
-        $PSCmdlet.ThrowTerminatingError($Ex)
-    }
-    <#
+                return $response
+            }
+            catch {
+                $Ex = $_ | Format-ApiException
+                $PSCmdlet.ThrowTerminatingError($Ex)
+            }
+            <#
     .SYNOPSIS 
     Starts the LED blinking on a Meraki Device.
     .PARAMETER serial
@@ -85,9 +87,9 @@ function Start-MerakiDeviceBlink() {
     .PARAMETER ProfileName
     Optional Profile name.
     #>
-    	}
+        }
     }
-    end{}
+    end {}
 }
 Set-Alias -Name StartMDevBlink -Value Start-MerakiDeviceBlink -Option ReadOnly
 
@@ -97,11 +99,11 @@ function Restart-MerakiDevice() {
         SupportsShouldProcess,
         ConfirmImpact = 'High'
     )]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName=$true
+            ValueFromPipelineByPropertyName = $true
         )]
         [string]$serial
     )
@@ -116,7 +118,8 @@ function Restart-MerakiDevice() {
 
             return $response
         }
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -135,28 +138,28 @@ Set-Alias -Name RestartMD -Value Restart-MerakiDevice -Option ReadOnly
 function Get-MerakiDeviceClient() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiDeviceClients')]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
         )]
         [string]$serial,
-        [ValidateScript({$_ -is [datetime]})]
+        [ValidateScript({ $_ -is [datetime] })]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
-        [Parameter(ParameterSetName ='datesWithProfiles', Mandatory)]                
+        [Parameter(ParameterSetName = 'datesWithProfiles', Mandatory)]                
         [datetime]$StartDate,
 
         [Parameter(ParameterSetName = 'days', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithOrg', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithProfile', Mandatory)]
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,31)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 31)]
         [int]$Days
     )
 
-    Begin {
+    begin {
 
         $Headers = Get-Headers
 
@@ -164,13 +167,13 @@ function Get-MerakiDeviceClient() {
             $Query = "t0={0}" -f ($StartDate.ToString("O"))
         }
         if ($Days) {
-            if ($Query) {$Query += '&'}
+            if ($Query) { $Query += '&' }
             $Seconds = [TimeSpan]::FromDays($Days).TotalSeconds
             $Query = "{0}timespan={1}" -f $Query, $Seconds
         }
     }
 
-    Process {
+    process {
         $Uri = "{0}/devices/{1}/clients" -f $BaseURI, $serial
         try {
             $response = Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
@@ -180,7 +183,8 @@ function Get-MerakiDeviceClient() {
                 }
             }
             return $response
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -204,7 +208,7 @@ Set-Alias -Name GMDevClients -Value Get-MerakiDeviceClients -Option ReadOnly
 function Get-MerakiDeviceApplianceUplink() {
     [CmdletBinding(DefaultParameterSetName)]
     [Alias('Get-MerakiDeviceApplianceUplinks')]
-    Param(
+    param(
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -219,7 +223,8 @@ function Get-MerakiDeviceApplianceUplink() {
     try {
         $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
         return $response
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -233,7 +238,7 @@ function Get-MerakiDeviceApplianceUplink() {
 
 function Submit-MerakiDeviceClaim() {
     [CmdletBinding()]
-    Param (
+    param (
         [Parameter(
             Mandatory,
             ValueFromPipeline
@@ -257,7 +262,8 @@ function Submit-MerakiDeviceClaim() {
     try {
         Invoke-RestMethod -Method Post -Uri $Uri -Headers $Headers -Body $Body
         return $response
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -275,8 +281,8 @@ function Submit-MerakiDeviceClaim() {
 }
 
 function Set-MerakiDevice {
-    [CmdletBinding(SupportsShouldProcess=$true)]
-    Param(
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -291,34 +297,35 @@ function Set-MerakiDevice {
         [int]$Longitude,
         [string[]]$Tags
     )
-    begin{}
-    process{
-    	if ($pscmdlet.ShouldProcess("device with serial $serial")){
-    $Headers = Get-Headers
+    begin {}
+    process {
+        if ($pscmdlet.ShouldProcess("device with serial $serial")) {
+            $Headers = Get-Headers
 
-    $Uri = "{0}/devices/{1}" -f $BaseURI, $Serial
+            $Uri = "{0}/devices/{1}" -f $BaseURI, $Serial
 
-    $_Body = @{}
+            $_Body = @{}
 
-    if ($Name) {$_Body.Add("name",$Name)}
-    if ($floorPlanId) {$_Body.Add("floorPlanId", $floorPlanId)}
-    if ($Notes) {$_Body.Add("notes", $Notes)}
-    if ($SwitchProfileId) {"switchProfileId", $SwitchProfileId}
-    if ($MoveMapMaker) {$_Body.Add("moveMapMaker", $MoveMapMaker)}
-    if ($Latitude) {$_Body.Add("lat", $Latitude)}
-    if ($Longitude) {$_Body.Add("lng", $Longitude)}
-    if ($Tags) {$_Body.Add("tags", $Tags)}
+            if ($Name) { $_Body.Add("name", $Name) }
+            if ($floorPlanId) { $_Body.Add("floorPlanId", $floorPlanId) }
+            if ($Notes) { $_Body.Add("notes", $Notes) }
+            if ($SwitchProfileId) { "switchProfileId", $SwitchProfileId }
+            if ($MoveMapMaker) { $_Body.Add("moveMapMaker", $MoveMapMaker) }
+            if ($Latitude) { $_Body.Add("lat", $Latitude) }
+            if ($Longitude) { $_Body.Add("lng", $Longitude) }
+            if ($Tags) { $_Body.Add("tags", $Tags) }
 
-    $body = $_Body | ConvertTo-Json -Depth 3 -Compress
+            $body = $_Body | ConvertTo-Json -Depth 3 -Compress
 
-    try {
-        $response = Invoke-RestMethod -Method PUT -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
-        return $response
-    } catch {
-        $Ex = $_ | Format-ApiException
-        $PSCmdlet.ThrowTerminatingError($Ex)
-    }
-    <#
+            try {
+                $response = Invoke-RestMethod -Method PUT -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
+                return $response
+            }
+            catch {
+                $Ex = $_ | Format-ApiException
+                $PSCmdlet.ThrowTerminatingError($Ex)
+            }
+            <#
     .DESCRIPTION
     Update the attributes of a Device.
     .PARAMETER Serial
@@ -342,9 +349,9 @@ function Set-MerakiDevice {
     .OUTPUTS
     A Device object.
     #>
-    	}
+        }
     }
-    end{}
+    end {}
 }
 
 function Remove-MerakiNetworkDevice() {
@@ -352,7 +359,7 @@ function Remove-MerakiNetworkDevice() {
         SupportsShouldProcess,
         ConfirmImpact = 'High'
     )]
-    Param (
+    param (
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -366,11 +373,11 @@ function Remove-MerakiNetworkDevice() {
         [string]$Serial
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
     }
 
-    Process {
+    process {
         $Uri = "{0}/networks/{1}/devices/remove" -f $BaseUri, $Id
 
         $_Body = @{
@@ -385,9 +392,10 @@ function Remove-MerakiNetworkDevice() {
             try {
                 $response = Invoke-RestMethod -Method POST -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
                 return $response
-            } catch {
-            $Ex = $_ | Format-ApiException
-            $PSCmdlet.ThrowTerminatingError($Ex)
+            }
+            catch {
+                $Ex = $_ | Format-ApiException
+                $PSCmdlet.ThrowTerminatingError($Ex)
             }
         }
     }
@@ -396,7 +404,7 @@ function Remove-MerakiNetworkDevice() {
 #region Monitoring
 function Get-MerakiDeviceLldpCdp() {
     [CmdletBinding()]
-    Param (
+    param (
         [Parameter(
             Mandatory,
             ValueFromPipelineByPropertyName
@@ -404,19 +412,21 @@ function Get-MerakiDeviceLldpCdp() {
         [string]$Serial
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
     }
 
-    Process {
+    process {
         $Uri = "{0}/devices/{1}/lldpCdp" -f $BaseURI, $Serial
         
         try {
             $response = Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
             return $response
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
     }
 }
+

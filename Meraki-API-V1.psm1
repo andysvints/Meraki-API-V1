@@ -12,11 +12,11 @@
 function ConvertTo-HashTable() {
     [CmdletBinding()]
     [OutputType('hashtable')]
-    Param(
+    param(
         [Parameter(ValueFromPipeline)]
         $inputObject        
     )
-    process{
+    process {
         if ($null -eq $inputObject) {
             return $null
         }
@@ -27,20 +27,25 @@ function ConvertTo-HashTable() {
                 }
             )
             Write-Output -NoEnumerate $collection
-        } elseIf($inputObject -is [psobject]) {
+        }
+        elseif ($inputObject -is [psobject]) {
             $hash = @{}
             foreach ($property in $inputObject.psObject.properties) {
                 if ($property.Value -is [psobject]) {
                     $hash[$property.name] = ConvertTo-Hashtable -inputObject $Property.value
-                } else {
+                }
+                else {
                     $hash[$property.Name] = $property.Value
                 }
             }
             $hash
-        } elseif ($inputObject -is [hashtable]) {
+        }
+        elseif ($inputObject -is [hashtable]) {
             $inputObject
-        } else {
+        }
+        else {
             ConvertTo-Hashtable -inputObject $inputObject
         }
     }
 }
+

@@ -9,15 +9,15 @@ function Read-Config () {
     $config = Get-Content -Raw -Path $ConfigPath | ConvertFrom-Json
 
     if ($config.APIKey -eq "Secure") {
-         $Secret = Get-Secret -Name "MerakiAPI" -AsPlainText | ConvertFrom-Json
-         $config.APIKey = $Secret.APIKey
+        $Secret = Get-Secret -Name "MerakiAPI" -AsPlainText | ConvertFrom-Json
+        $config.APIKey = $Secret.APIKey
     }
 
     return $config
 }
 
 function ConvertTo-UTime () {
-    Param(
+    param(
         [datetime]$DateTime
     )
 
@@ -27,7 +27,7 @@ function ConvertTo-UTime () {
 }
 
 function ConvertFrom-UTime() {
-    Param(
+    param(
         [decimal]$Utime
     )
 
@@ -42,8 +42,8 @@ function Get-Header() {
     $config = Read-Config
     $Headers = @{
         "Authorization" = "Bearer $($config.APIKey)"
-        "Accept" = 'application/json'
-        "Content-Type" = 'application/json'
+        "Accept"        = 'application/json'
+        "Content-Type"  = 'application/json'
     }
     return $Headers
 }
@@ -91,7 +91,7 @@ function Format-ApiError {
         }
         # Format 5: Direct object with error properties
         elseif ($errorObject.PSObject.Properties.Name -contains 'status' -or 
-                 $errorObject.PSObject.Properties.Name -contains 'code') {
+            $errorObject.PSObject.Properties.Name -contains 'code') {
             $errorParts = @()
             if ($errorObject.status) { $errorParts += "Status: $($errorObject.status)" }
             if ($errorObject.code) { $errorParts += "Code: $($errorObject.code)" }
@@ -130,7 +130,7 @@ function Format-ErrorMessage {
 
 function Format-ApiException () {
     [CmdletBinding()]
-    Param (
+    param (
         [Parameter(
             Mandatory = $true,
             ParameterSetName = 'exception',
@@ -152,9 +152,10 @@ function Format-ApiException () {
         [string]$Message
     )
 
-    If ($Exception) {
+    if ($Exception) {
         $errorMessage = $Exception.Message
-    } else {
+    }
+    else {
         $errorMessage = $Message
     }
     if ($ErrorDetails) {
@@ -166,10 +167,13 @@ function Format-ApiException () {
         $Ex = [ErrorRecord]::New(
             [System.Exception]::New($formattedDetailsMessage),
             'ApiError', 'NotSpecified', $Null)
-    } else {
+    }
+    else {
         $Ex = [ErrorRecord]::New(
             [System.Exception]::New($errorMessage),
-            'APIError', 'NotSpecified',$null)
+            'APIError', 'NotSpecified', $null)
     }
     return $Ex
 }
+
+

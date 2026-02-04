@@ -2,182 +2,196 @@
 using namespace System.Collections.Generic
 
 function Set-MerakiAPI() {
-    [CmdletBinding(SupportsShouldProcess=$true)]
-    Param(
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
         [string]$APIKey,
         [string]$OrgID,
         [string]$ProfileName,
         [switch]$SecureKey
     )
-    begin{}
-    process{
-    	if ($pscmdlet.ShouldProcess("organization $OrgID")){
-    function Set-MerakiSecret() {
-       [CmdletBinding(SupportsShouldProcess=$true)] 
-        Param(
-            [string]$APIKey
-        )
-	begin{}
-	process{
-		if ($pscmdlet.ShouldProcess("APIKey - $APIKey")){
-        $SecretIn = @{
-            Version = 1
-            APIKey = $APIKey
-        }
-        $Secret = $SecretIn | ConvertTo-Json
+    begin {}
+    process {
+        if ($pscmdlet.ShouldProcess("organization $OrgID")) {
+            function Set-MerakiSecret() {
+                [CmdletBinding(SupportsShouldProcess = $true)] 
+                param(
+                    [string]$APIKey
+                )
+                begin {}
+                process {
+                    if ($pscmdlet.ShouldProcess("APIKey - $APIKey")) {
+                        $SecretIn = @{
+                            Version = 1
+                            APIKey  = $APIKey
+                        }
+                        $Secret = $SecretIn | ConvertTo-Json
 
-        $Params = @{
-            Name = "MerakiAPI"
-            Secret = $Secret
-        }
-
-        Set-Secret @Params
-		}
-	}
-	end{}
-    }
-
-    $configPath = "{0}/.meraki" -f $HOME
-    $configFile = "{0}/config.json" -f $configPath
-
-    if (-not (Test-Path -Path $configFile)) {
-        if (-not $APIKey) {
-            $APIKey = Read-Host -Prompt "API Key: "
-        }   
-
-        if ($APIKey) {
-            if ($SecureKey) {
-                $config = @{
-                    APIKey = "Secure"
-                }
-                
-                $Params = @{
-                    APIKey = $APIKey
-                }
-                
-                Set-MerakiSecret @Params                
-            } else {
-                $config = @{
-                    APIKey = $apiKey
-                }
-            }
-         } else {
-            Write-ApiError -Message "APIKey required if config file does not exist!"
-        } 
-        if ((-not $OrgId) -and (-not $profileName)) {
-            $orgs = Get-MerakiOrganizations -APIKey $APIKey
-            
-            $config.Add('profiles', @{default = $orgs[0].Id})
-            foreach ($org in $orgs) {
-                $config.profiles.Add($org.name, $org.id)
-            }
-        } else {
-            if (-not $profileName) {
-                $config.Add('profiles',@{default = $OrgID})
-            } else {
-                $config.Add('profiles',@{})
-                $config.profiles.Add($profileName, $OrgID)
-            }
-        }
-    } else {
-        # Read config into an object
-        $oConfig = Get-Content -Raw -Path $configFile | ConvertFrom-Json
-        # Convert the object to a hash table
-        $config = $oConfig | ConvertTo-HashTable
-
-        if ($APIKey) {
-            If ($config.APIKey -eq 'Secure') {
-                $ConfigKey = (Get-Secret -Name 'MerakiAPI' -AsPlainText | ConvertFrom-JSON).APIKey
-            } Else {
-                $ConfigKey = $Config.APIKey
-            }
-            If ($ConfigKey -ne $APIKey) {
-                Write-Host "The APIKey you entered does not match the APIKey in the config file. This will overwrite the existing config file! Continue? [y/N]: " -NoNewline -ForegroundColor Yellow                
-                $response = Read-Host 
-                if ($response -eq "y") {
-                    if ($SecureKey) {
-                        $config = @{
-                            $APIKey = "Secure"
+                        $Params = @{
+                            Name   = "MerakiAPI"
+                            Secret = $Secret
                         }
 
-                        $VaultName = (Get-SecretVault | Select-Object -First 1).Name
-                        If ($VaultName) {
-                            Write-Host "Checking $VaultName for existing Meraki Secret" -ForegroundColor Yellow
-                            $Secret = Get-SecretInfo -Vault $VaultName | Where-Object {$_.Name -eq 'MerakiAPI'}
-                            If ($Secret) {
-                                Write-Host "MerakiAPI secret already exists, Do you want to overwrite? [y/N]: " -NoNewline -ForegroundColor Yellow
-                                $response = Read-Host
-                                if ($response -ne 'y') {
-                                    Write-Host "Aborting!"
-                                    exit
+                        Set-Secret @Params
+                    }
+                }
+                end {}
+            }
+
+            $configPath = "{0}/.meraki" -f $HOME
+            $configFile = "{0}/config.json" -f $configPath
+
+            if (-not (Test-Path -Path $configFile)) {
+                if (-not $APIKey) {
+                    $APIKey = Read-Host -Prompt "API Key: "
+                }   
+
+                if ($APIKey) {
+                    if ($SecureKey) {
+                        $config = @{
+                            APIKey = "Secure"
+                        }
+                
+                        $Params = @{
+                            APIKey = $APIKey
+                        }
+                
+                        Set-MerakiSecret @Params                
+                    }
+                    else {
+                        $config = @{
+                            APIKey = $apiKey
+                        }
+                    }
+                }
+                else {
+                    Write-ApiError -Message "APIKey required if config file does not exist!"
+                } 
+                if ((-not $OrgId) -and (-not $profileName)) {
+                    $orgs = Get-MerakiOrganizations -APIKey $APIKey
+            
+                    $config.Add('profiles', @{default = $orgs[0].Id })
+                    foreach ($org in $orgs) {
+                        $config.profiles.Add($org.name, $org.id)
+                    }
+                }
+                else {
+                    if (-not $profileName) {
+                        $config.Add('profiles', @{default = $OrgID })
+                    }
+                    else {
+                        $config.Add('profiles', @{})
+                        $config.profiles.Add($profileName, $OrgID)
+                    }
+                }
+            }
+            else {
+                # Read config into an object
+                $oConfig = Get-Content -Raw -Path $configFile | ConvertFrom-Json
+                # Convert the object to a hash table
+                $config = $oConfig | ConvertTo-HashTable
+
+                if ($APIKey) {
+                    if ($config.APIKey -eq 'Secure') {
+                        $ConfigKey = (Get-Secret -Name 'MerakiAPI' -AsPlainText | ConvertFrom-Json).APIKey
+                    }
+                    else {
+                        $ConfigKey = $Config.APIKey
+                    }
+                    if ($ConfigKey -ne $APIKey) {
+                        Write-Host "The APIKey you entered does not match the APIKey in the config file. This will overwrite the existing config file! Continue? [y/N]: " -NoNewline -ForegroundColor Yellow                
+                        $response = Read-Host 
+                        if ($response -eq "y") {
+                            if ($SecureKey) {
+                                $config = @{
+                                    $APIKey = "Secure"
+                                }
+
+                                $VaultName = (Get-SecretVault | Select-Object -First 1).Name
+                                if ($VaultName) {
+                                    Write-Host "Checking $VaultName for existing Meraki Secret" -ForegroundColor Yellow
+                                    $Secret = Get-SecretInfo -Vault $VaultName | Where-Object { $_.Name -eq 'MerakiAPI' }
+                                    if ($Secret) {
+                                        Write-Host "MerakiAPI secret already exists, Do you want to overwrite? [y/N]: " -NoNewline -ForegroundColor Yellow
+                                        $response = Read-Host
+                                        if ($response -ne 'y') {
+                                            Write-Host "Aborting!"
+                                            exit
+                                        }
+                                    }
+                                }
+                        
+                                Set-MerakiSecret -APIKey $APIKey
+
+                            }
+                            else {
+                                $config = @{
+                                    APIKey = $APiKey
                                 }
                             }
                         }
-                        
-                        Set-MerakiSecret -APIKey $APIKey
-
-                    } else {
-                        $config = @{
-                            APIKey = $APiKey
+                        else {
+                            Write-ApiError -Message "Aborting!"
                         }
                     }
-                } else {
-                    Write-ApiError -Message "Aborting!"
-                }
-            } else {
-                if ($SecureKey) {
-                    $Config.APIKey = "Secure"
+                    else {
+                        if ($SecureKey) {
+                            $Config.APIKey = "Secure"
                     
-                    Set-MerakiSecret -APIKey $APIKey 
+                            Set-MerakiSecret -APIKey $APIKey 
+                        }
+                    }
                 }
-            }
-        } else {
-            if ($SecureKey) {
-                $APIKey = $config.APIKey
-                $config.APIKey = "Secure"
+                else {
+                    if ($SecureKey) {
+                        $APIKey = $config.APIKey
+                        $config.APIKey = "Secure"
                                 
-                Set-MerakiSecret -APIKey $APIKey 
+                        Set-MerakiSecret -APIKey $APIKey 
 
-                if (-not (Test-Path -Path $configPath)) {
-                    [void](New-Item -Path $configPath -ItemType:Directory)
-                }
+                        if (-not (Test-Path -Path $configPath)) {
+                            [void](New-Item -Path $configPath -ItemType:Directory)
+                        }
 
-                $config | ConvertTo-Json | Out-File -FilePath $configFile
-                return 
-            }
-        }
-        if ((-not $OrgID) -and (-not $profileName)) {
-            $response = ($R = read-host "Overwrite Profiles from organization names? [Y/n]:") ? $R : 'Y'
-            if ($response -eq 'Y') {
-                $orgs = Get-MerakiOrganizations -APIKey $config.APIKey
-                $config.Add('profiles', @{default = $orgs[0].Id})
-                foreach ($org in $orgs) {
-                    $config.profiles.Add($org.name, $org.Id)
+                        $config | ConvertTo-Json | Out-File -FilePath $configFile
+                        return 
+                    }
+                }
+                if ((-not $OrgID) -and (-not $profileName)) {
+                    $response = ($R = Read-Host "Overwrite Profiles from organization names? [Y/n]:") ? $R : 'Y'
+                    if ($response -eq 'Y') {
+                        $orgs = Get-MerakiOrganizations -APIKey $config.APIKey
+                        $config.Add('profiles', @{default = $orgs[0].Id })
+                        foreach ($org in $orgs) {
+                            $config.profiles.Add($org.name, $org.Id)
+                        }
+                    }
+                }
+                else {
+                    if (-not $profileName) {
+                        if ($config.profiles.default) {
+                            $config.profiles.default = $orgId
+                        }
+                        else {
+                            $config.profiles.Add('default', $orgId)
+                        }
+                    }
+                    else {
+                        if ($config.profiles.$profileName) {
+                            $config.profiles.$profileName = $OrgId
+                        }
+                        else {
+                            $config.profiles.Add($profileName, $OrgId)
+                        }
+                    }
                 }
             }
-        } else {
-            if (-not $profileName) {
-                if ($config.profiles.default) {
-                    $config.profiles.default = $orgId
-                } else {
-                    $config.profiles.Add('default', $orgId)
-                }
-            } else {
-                if ($config.profiles.$profileName) {
-                    $config.profiles.$profileName = $OrgId
-                } else {
-                    $config.profiles.Add($profileName, $OrgId)
-                }
-            }
-        }
-    }
     
-    if (-not (Test-Path -Path $configPath)) {
-        [void](New-Item -Path $configPath -ItemType:Directory)
-    }
+            if (-not (Test-Path -Path $configPath)) {
+                [void](New-Item -Path $configPath -ItemType:Directory)
+            }
 
-    $config | ConvertTo-Json | Out-File -FilePath $configFile
-    <#
+            $config | ConvertTo-Json | Out-File -FilePath $configFile
+            <#
     .SYNOPSIS 
     Set the configuration file.
     .DESCRIPTION
@@ -212,29 +226,29 @@ function Set-MerakiAPI() {
     Convert your existing configuration to use the Secure Key Store.
     Set-MerakiAPI -SecureKey     
     #>
-    	}
+        }
     }
-    end{}
+    end {}
 }
 
 function Set-MerakiProfile () {
-    [CmdletBinding(SupportsShouldProcess=$true)]
-    Param(
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
         [Parameter(Mandatory = $true)]
         [string]$profileName
     )
-    begin{}
-    process{
-    	if ($pscmdlet.ShouldProcess("profile $profileName")){
-    $configFile = "{0}/.meraki/config.json" -f $home
-    $Config = Get-Content -Path $configFile | ConvertFrom-Json | ConvertTo-HashTable
+    begin {}
+    process {
+        if ($pscmdlet.ShouldProcess("profile $profileName")) {
+            $configFile = "{0}/.meraki/config.json" -f $home
+            $Config = Get-Content -Path $configFile | ConvertFrom-Json | ConvertTo-HashTable
 
-    $orgID = $Config.profiles.$profileName
-    if (-not $OrgId) {
-        Write-ApiError -Message "Invalid profile name!"
-    }
-    Set-MerakiAPI -OrgID $orgID -profileName 'default'
-    <#
+            $orgID = $Config.profiles.$profileName
+            if (-not $OrgId) {
+                Write-ApiError -Message "Invalid profile name!"
+            }
+            Set-MerakiAPI -OrgID $orgID -profileName 'default'
+            <#
     .SYNOPSIS
     Set the default profile to the specified named profile.
     .DESCRIPTION
@@ -243,26 +257,27 @@ function Set-MerakiProfile () {
     .PARAMETER profileName
     The name of the profile to use.
     #>
-    	}
+        }
     }
-    end{}
+    end {}
 }
 
 
 function Get-MerakiOrganization() {
     [Alias('Get-MerakiOrganizations')]
-    Param(
+    param(
         [string]$APIKey
     )
 
     $Uri = "{0}/organizations" -f $BaseURI
     
-    If ($APIKey) {
+    if ($APIKey) {
         $Headers = @{
             "X-Cisco-Meraki-API-Key" = $APIKey
-            "Content-Type" = 'application/json'
+            "Content-Type"           = 'application/json'
         }
-    } else {
+    }
+    else {
         $Headers = Get-Headers
     }
 
@@ -270,7 +285,8 @@ function Get-MerakiOrganization() {
         $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
         
         return $response
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -288,13 +304,13 @@ Set-Alias -Name GMOrgs -Value Get-MerakiOrganizations -Option ReadOnly
 
 function Get-MerakiOrganization() {
     [CmdLetBinding(DefaultParameterSetName = 'default')]
-    Param (
+    param (
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgID,
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
-<# 
+    <# 
     If ($OrgId -and $profileName) {
         Write-Host "The parameters OrgId and ProfileName cannot be used together!" -ForegroundColor Red
         return
@@ -307,7 +323,8 @@ function Get-MerakiOrganization() {
             if (-not $OrgId) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgId = $config.profiles.default
             if (-not $OrgId) {
                 Write-ApiError -Message "There is no default profile. You must use the -OrgId parameter and supply the Organization Id."
@@ -321,7 +338,8 @@ function Get-MerakiOrganization() {
         $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
 
         return $response
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -337,48 +355,48 @@ function Get-MerakiOrganization() {
     #>
 }
 
-Set-Alias -Name GMOrg -value Get-MerakiOrganization -Option ReadOnly
+Set-Alias -Name GMOrg -Value Get-MerakiOrganization -Option ReadOnly
 
 function New-MerakiOrganization() {
-    [CmdletBinding(SupportsShouldProcess=$true)]
-    Param(
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [string]$ManagementName,
         [string]$ManagementValue
     )
-    begin{}
-    process{
-    	if ($pscmdlet.ShouldProcess("organization $Name")){
-    $Headers = Get-Headers
+    begin {}
+    process {
+        if ($pscmdlet.ShouldProcess("organization $Name")) {
+            $Headers = Get-Headers
 
-    $Uri = "{0}/organizations" -f $BaseURI
+            $Uri = "{0}/organizations" -f $BaseURI
 
-    $_Body = @{
-        name = $Name
-    }
+            $_Body = @{
+                name = $Name
+            }
 
-    If ($ManagementName) {
-        $_Body.Add("management", @{
-            details = @(
-                @{
-                    "name" = $ManagementName
-                    "value" = $
-                }
-            )
-        })
-    }
-    $body = $_Body | ConvertTo-Json -Depth 5 -Compress
+            if ($ManagementName) {
+                $_Body.Add("management", @{
+                        details = @(
+                            @{
+                                "name"  = $ManagementName
+                                "value" = $
+                            }
+                        )
+                    })
+            }
+            $body = $_Body | ConvertTo-Json -Depth 5 -Compress
 
-    try {
-        $response = Invoke-RestMethod -Method POST -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
-        return $response
-    }
-    catch {
-        $Ex = $_ | Format-ApiException
-        $PSCmdlet.ThrowTerminatingError($Ex)
-    }
-    <#
+            try {
+                $response = Invoke-RestMethod -Method POST -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
+                return $response
+            }
+            catch {
+                $Ex = $_ | Format-ApiException
+                $PSCmdlet.ThrowTerminatingError($Ex)
+            }
+            <#
     .SYNOPSIS
     Create an organization
     .DESCRIPTION 
@@ -390,14 +408,14 @@ function New-MerakiOrganization() {
     .PARAMETER ManagementValue
     Value of the management system
     #>
-    	}
+        }
     }
-    end{}
+    end {}
 }
 
 function Set-MerakiOrganization() {
-    [CmdletBinding(DefaultParameterSetName = 'default',SupportsShouldProcess=$true)]
-    Param(
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess = $true)]
+    param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [string]$ManagementName,
@@ -408,60 +426,61 @@ function Set-MerakiOrganization() {
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
-    begin{}
-    process{
-    	if ($pscmdlet.ShouldProcess("organization $Name")){
-<# 
+    begin {}
+    process {
+        if ($pscmdlet.ShouldProcess("organization $Name")) {
+            <# 
     If ($OrgId -and $profileName) {
         Write-Host "The parameters OrgId and ProfileName cannot be used together!" -ForegroundColor Red
         return
     }
  #>
-    if (-not $orgID) {
-        $config = Read-Config
-        if ($profileName) {
-            $orgID = $config.profiles.$profileName
             if (-not $orgID) {
-                Write-ApiError -Message "Invalid profile name!"
-            }
-        } else {
-            $orgID = $config.profiles.default
-        }
-    }
-    $Uri = "{0}/organizations/{1}" -f $BaseURI, $orgID
-
-    $Headers = Get-Headers
-
-    $_Body = @{
-        name = $Name        
-    }
-    if ($ManagementName) {
-        $_Body.Add("management", @{
-            details = @(
-                @{
-                    name = $ManagementName
-                    value = $ManagementValue
+                $config = Read-Config
+                if ($profileName) {
+                    $orgID = $config.profiles.$profileName
+                    if (-not $orgID) {
+                        Write-ApiError -Message "Invalid profile name!"
+                    }
                 }
-            )
-        })        
-    }
-    if ($ApiEnabled) {
-        $_Body.Add("api", @{
-            "enabled" = $ApiEnabled.IsPresent
-        })
-    }
+                else {
+                    $orgID = $config.profiles.default
+                }
+            }
+            $Uri = "{0}/organizations/{1}" -f $BaseURI, $orgID
 
-    $body = $_Body | ConvertTo-Json -Depth 5 -Compress
+            $Headers = Get-Headers
 
-    try {
-        $response = Invoke-RestMethod -Method PUT -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
-        return $response
-    }
-    catch {
-        $Ex = $_ | Format-ApiException
-        $PSCmdlet.ThrowTerminatingError($Ex)
-    }
-    <#
+            $_Body = @{
+                name = $Name        
+            }
+            if ($ManagementName) {
+                $_Body.Add("management", @{
+                        details = @(
+                            @{
+                                name  = $ManagementName
+                                value = $ManagementValue
+                            }
+                        )
+                    })        
+            }
+            if ($ApiEnabled) {
+                $_Body.Add("api", @{
+                        "enabled" = $ApiEnabled.IsPresent
+                    })
+            }
+
+            $body = $_Body | ConvertTo-Json -Depth 5 -Compress
+
+            try {
+                $response = Invoke-RestMethod -Method PUT -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
+                return $response
+            }
+            catch {
+                $Ex = $_ | Format-ApiException
+                $PSCmdlet.ThrowTerminatingError($Ex)
+            }
+            <#
     .SYNOPSIS
     Update an organization
     .DESCRIPTION
@@ -481,16 +500,16 @@ function Set-MerakiOrganization() {
     .OUTPUTS
     A Meraki organization object
     #>
-    	}
+        }
     }
-    end{}
+    end {}
 }
 
 #region Organization Networks
 function Get-MerakiNetwork() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiNetworks')]
-    Param(
+    param(
         [string]$ConfigTemplateId,
         [switch]$IsBoundToConfigTemplate,
         [switch]$IncludeTemplates,
@@ -500,7 +519,7 @@ function Get-MerakiNetwork() {
         [string]$profileName
     )
 
-<# 
+    <# 
     If ($OrgId -and $profileName) {
         Write-Host "The parameters OrgId and ProfileName cannot be used together!" -ForegroundColor Red
         return
@@ -513,19 +532,21 @@ function Get-MerakiNetwork() {
             if (-not $orgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $orgID = $config.profiles.default
         }
     }
     $Uri = "{0}/organizations/{1}/networks" -f $BaseURI, $orgID
-    if ($ConfigTemplateId){
+    if ($ConfigTemplateId) {
         $Uri = "{0}?configTemplateId=" -f $Uri, $ConfigTemplateId
     }
 
-    If ($IsBoundToConfigTemplate.IsPresent) {
+    if ($IsBoundToConfigTemplate.IsPresent) {
         if ($Uri.Contains("?")) {
             $Uri = "{0}&isBoundToConfigTemplate=true" -f $Uri
-        } else {
+        }
+        else {
             $Uri = "{0}?isBoundToConfigTemplate=false" -f $Uri
         }
     }
@@ -533,20 +554,21 @@ function Get-MerakiNetwork() {
     $Headers = Get-Headers
     try {
         $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
-        If ($IncludeTemplates.IsPresent) {
+        if ($IncludeTemplates.IsPresent) {
             $templates = @{}
             Get-MerakiOrganizationConfigTemplates | ForEach-Object {
                 $templates.Add($_.id, $_)
             }
             foreach ($network in $response) {
-                If ($Network.isBoundToConfigTemplate) {
+                if ($Network.isBoundToConfigTemplate) {
                     $template = $templates[$Network.configTemplateId]
                     $response[$response.IndexOf($Network)] | Add-Member -MemberType NoteProperty -Name "configTemplate" -Value $template
                 }
             }
         } 
         return $response
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -574,7 +596,7 @@ Set-Alias -Name GMNets -Value Get-MerakiNetworks -Option ReadOnly
 
 function Add-MerakiNetwork() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [Parameter(Mandatory = $true)]
@@ -588,7 +610,7 @@ function Add-MerakiNetwork() {
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
-<# 
+    <# 
     If ($OrgId -and $profileName) {
         Write-Host "The parameters OrgId and ProfileName cannot be used together!" -ForegroundColor Red
         return
@@ -601,7 +623,8 @@ function Add-MerakiNetwork() {
             if (-not $orgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $orgID = $config.profiles.default
         }
     }
@@ -610,7 +633,7 @@ function Add-MerakiNetwork() {
     $Uri = "{0}/organizations/{1}/networks"
 
     $_Body = @{
-        name = $Name
+        name         = $Name
         productTypes = $ProductTypes
     }
     if ($TimeZone) { $_Body.Add("timeZone", $TimeZone) }
@@ -623,7 +646,8 @@ function Add-MerakiNetwork() {
     try {
         $response = Invoke-RestMethod -Method POST -Uri $Uri -Headers $Headers -Body $body -PreserveAuthorizationOnRedirect
         return $response        
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -658,13 +682,13 @@ function Add-MerakiNetwork() {
 function Get-MerakiOrganizationConfigTemplate() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiOrganizationConfigTemplates')]
-    Param(
+    param(
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgID,
         [Parameter(ParameterSetName = 'default')]
         [string]$profileName
     )
-<# 
+    <# 
     If ($OrgId -and $profileName) {
         Write-Host "The parameters OrgId and ProfileName cannot be used together!" -ForegroundColor Red
         return
@@ -677,7 +701,8 @@ function Get-MerakiOrganizationConfigTemplate() {
             if (-not $OrgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgID = $config.profiles.default
         }
     }
@@ -685,11 +710,12 @@ function Get-MerakiOrganizationConfigTemplate() {
     $Uri = "{0}/organizations/{1}/configTemplates" -f $BaseURI, $OrgID
     $headers = Get-Headers
 
-    try{
+    try {
         $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $headers -PreserveAuthorizationOnRedirect
 
         return $response
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -711,7 +737,7 @@ function Get-MerakiOrganizationConfigTemplate() {
 
 function Get-MerakiOrganizationConfigTemplate () {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [Parameter(
             ValueFromPipelineByPropertyName
         )]
@@ -723,8 +749,8 @@ function Get-MerakiOrganizationConfigTemplate () {
         [string]$profileName
     )
 
-    Begin {
-        If ($OrgId -and $profileName) {
+    begin {
+        if ($OrgId -and $profileName) {
             Write-Host "The parameters OrgId and ProfileName cannot be used together!" -ForegroundColor Red
             return
         }
@@ -736,7 +762,8 @@ function Get-MerakiOrganizationConfigTemplate () {
                 if (-not $OrgID) {
                     Write-ApiError -Message "Invalid profile name!"
                 }
-            } else {
+            }
+            else {
                 $OrgID = $config.profiles.default
             }
         }
@@ -744,7 +771,7 @@ function Get-MerakiOrganizationConfigTemplate () {
         $Headers = Get-Headers
     }
 
-    Process {
+    process {
         $Uri = "{0}/organizations/{1}/configTemplates" -f $BaseURI, $OrgID
         if ($Id) {
             $Uri = "{0}/{1}" -f $Uri, $Id
@@ -775,13 +802,13 @@ function Get-MerakiOrganizationConfigTemplate () {
     #>
 }
 
-Set-Alias -Name GMOrgTemplates -value Get-MerakiOrganizationConfigTemplate -Option ReadOnly
+Set-Alias -Name GMOrgTemplates -Value Get-MerakiOrganizationConfigTemplate -Option ReadOnly
 Set-Alias -Name Get-MerakiOrganizationConfigTemplates -Value Get-MerakiOrganizationConfigTemplate
 
 function Get-MerakiOrganizationDevice() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiOrganizationDevices')]
-    Param(
+    param(
         [string]$Filter,
         [int]$Pages,
         [Parameter(ParameterSetName = 'org')]
@@ -789,20 +816,21 @@ function Get-MerakiOrganizationDevice() {
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
-<# 
+    <# 
     If ($OrgId -and $profileName) {
         Write-Host "The parameters OrgId and ProfileName cannot be used together!" -ForegroundColor Red
         return
     }
  #>
-    If (-not $OrgID) {
+    if (-not $OrgID) {
         $config = Read-Config
         if ($profileName) {
             $OrgID = $config.profiles.$profileName
             if (-not $OrgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgID = $config.profiles.default
         }
     }
@@ -839,14 +867,16 @@ function Get-MerakiOrganizationDevice() {
                     if ($page -gt $Pages) {
                         $done = $true
                     }
-                } else {
+                }
+                else {
                     $done = $true
                 }
             } until ($done)
         }
 
         return $Result.ToArray()
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -884,26 +914,27 @@ Set-Alias -Name GMOrgDevs -Value Get-MerakiOrganizationDevices -Option ReadOnly
 function Get-MerakiOrganizationAdmin() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiOrganizationAdmins')]
-    Param(
+    param(
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgID,
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
-<# 
+    <# 
     If ($OrgId -and $profileName) {
         Write-Host "The parameters OrgId and ProfileName cannot be used together!" -ForegroundColor Red
         return
     }
  #>    
-    If (-not $orgID) {
+    if (-not $orgID) {
         $config = Read-Config
         if ($profileName) {
             $OrgID = $config.profiles.$profileName
             if (-noy $OrgID) { 
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgID = $config.profiles.default
         }
     }
@@ -915,7 +946,8 @@ function Get-MerakiOrganizationAdmin() {
         $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $Headers -PreserveAuthorizationOnRedirect
 
         return $response
-    }catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -935,37 +967,37 @@ Set-Alias -Name GMOrgAdmins -Value Get-MerakiOrganizationAdmins -Option ReadOnly
 
 
 function Get-MerakiOrganizationConfigurationChange() {
-    [CmdletBinding(DefaultParameterSetName='default')]
+    [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiOrganizationConfigurationChanges')]
-    Param(       
+    param(       
         [Parameter(ParameterSetName = 'dates')]
         [Parameter(ParameterSetName = 'datesWithOrg')]
         [Parameter(ParameterSetName = 'datesWithProfile')]
-        [ValidateScript({$_ -is [DateTime]})]
+        [ValidateScript({ $_ -is [DateTime] })]
         [Alias('StartTime')]
         [datetime]$StartDate,
 
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithOrg', Mandatory)]
         [Parameter(ParameterSetName = 'datesWithProfile', Mandatory)]
-        [ValidateScript({$_ -is [DateTime]})]
+        [ValidateScript({ $_ -is [DateTime] })]
         [Alias('EndTime')]
         [DateTime]$EndDate,
 
         [Parameter(ParameterSetName = 'days', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithOrg', Mandatory)]
         [Parameter(ParameterSetName = 'daysWithProfile', Mandatory)]
-        [ValidateScript({$_ -is [int32]})]
+        [ValidateScript({ $_ -is [int32] })]
         [Alias('TimeSpan')]
-        [ValidateRange(0,31)]
+        [ValidateRange(0, 31)]
         [Int]$Days,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,1000)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 1000)]
         [int]$PerPage,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(0,1000)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(0, 1000)]
         [int]$Pages = 1,
         
         [string]$NetworkID,
@@ -983,14 +1015,15 @@ function Get-MerakiOrganizationConfigurationChange() {
         [string]$ProfileName
     )
 
-    If (-not $OrgID) {
+    if (-not $OrgID) {
         $config = Read-Config
         if ($profileName) {
             $OrgId = $config.profiles.$profileName
             if (-not $OrgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgID = $config.profiles.default
         }
     }
@@ -1026,7 +1059,7 @@ function Get-MerakiOrganizationConfigurationChange() {
     $Body = $psBody | ConvertTo-Json
 
     try {
-        $response = Invoke-WebRequest -Method GET -Uri $Uri -body $Body -Headers $Headers -PreserveAuthorizationOnRedirect
+        $response = Invoke-WebRequest -Method GET -Uri $Uri -Body $Body -Headers $Headers -PreserveAuthorizationOnRedirect
         [List[PsObject]]$result = $response.Content | ConvertFrom-Json
         if ($result) {
             $Results.AddRange($result)
@@ -1046,17 +1079,19 @@ function Get-MerakiOrganizationConfigurationChange() {
                     if ($page -gt $Pages) {
                         $done = $true
                     }
-                } else {
+                }
+                else {
                     $done = $true
                 }
             } until ($done)
         }
 
         return $Result.ToArray()
-     } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
-     }
+    }
     <#
     .SYNOPSIS 
     Get Organization Configuration Changes
@@ -1098,13 +1133,13 @@ Set-Alias -Name GMOrgCC -Value Get-MerakiOrganizationConfigurationChanges -Optio
 function Get-MerakiOrganizationThirdPartyVpnPeer() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiOrganizationThirdPartyVpnPeers')]
-    Param(
+    param(
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgID,
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
-<# 
+    <# 
     If ($OrgId -and $profileName) {
         Write-Host "The parameters OrgId and ProfileName cannot be used together!" -ForegroundColor Red
         return
@@ -1117,7 +1152,8 @@ function Get-MerakiOrganizationThirdPartyVpnPeer() {
             if (-not $OrgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgId = $config.profiles.default
         }
     }
@@ -1129,7 +1165,8 @@ function Get-MerakiOrganizationThirdPartyVpnPeer() {
         $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
     
         return $response.peers 
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -1148,8 +1185,8 @@ function Get-MerakiOrganizationThirdPartyVpnPeer() {
 Set-Alias -Name GMOrg3pVP -Value Get-MerakiOrganizationThirdPartyVPNPeers -Option ReadOnly
 
 function Set-MerakiOrganizationThirdPartyVpnPeer() {
-    [CmdletBinding(DefaultParameterSetName = 'default',SupportsShouldProcess=$true)]
-    Param(
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess = $true)]
+    param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [Parameter(Mandatory = $true)]
@@ -1170,60 +1207,62 @@ function Set-MerakiOrganizationThirdPartyVpnPeer() {
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
-    begin{}
-    process{
-    	if ($pscmdlet.ShouldProcess("name - $Name")){
-    if (-not $OrgID) {
-        $config = Read-Config
-        if ($profileName) {
-            $OrgId = $config.profiles.$profileName
+    begin {}
+    process {
+        if ($pscmdlet.ShouldProcess("name - $Name")) {
             if (-not $OrgID) {
-                Write-ApiError -Message "Invalid profile name!"
+                $config = Read-Config
+                if ($profileName) {
+                    $OrgId = $config.profiles.$profileName
+                    if (-not $OrgID) {
+                        Write-ApiError -Message "Invalid profile name!"
+                    }
+                }
+                else {
+                    $OrgId = $config.profiles.default
+                }
             }
-        } else {
-            $OrgId = $config.profiles.default
-        }
-    }
 
-    $Headers = Get-Headers
+            $Headers = Get-Headers
 
-    $Uri = "{0}/organizations/{1}/appliance/vpn/thirdPartyVPNPeers" -f $BaseURI, $OrgID
+            $Uri = "{0}/organizations/{1}/appliance/vpn/thirdPartyVPNPeers" -f $BaseURI, $OrgID
 
-    $Peers = @{}
-    Get-MerakiOrganizationThirdPartyVpnPeers | ForEach-Object {
-        $Peers.Add($Name, $_)
-    }
+            $Peers = @{}
+            Get-MerakiOrganizationThirdPartyVpnPeers | ForEach-Object {
+                $Peers.Add($Name, $_)
+            }
 
-    if (-not $Peers[$Name]) {
-        Write-ApiError -Message "Peer $Name is not found!"
-    }
+            if (-not $Peers[$Name]) {
+                Write-ApiError -Message "Peer $Name is not found!"
+            }
 
-    if ($IkeVersion) { $Peers[$Name].ikeVersion = $IkeVersion }
-    if ($IpsecPoliciesPreset) { $Peers[$Name].IpsecPoliciesPreset = $IpsecPoliciesPreset } 
-    if ($LocalId) { $Peers[$Name].localId = $LocalId }
-    if ($publicIp) { $Peers[$Name].publicIp = $PublicIp }
-    if ($RemoteId) { $Peers[$Name].remoteIp = $RemoteId }
-    if ($Secret) { $Peers[$Name].secret = $Secret}
-    if ($NetworkTags) { $Peer[$Name].networkTags = $NetworkTags }
-    if ($PrivateSubnets) { $Peers[$Name].privateSubnets = $PrivateSubnets }
-    if ($IpsecPolicies) { $Peer[$Name].ipsecPolicies = $IpsecPolicies}
+            if ($IkeVersion) { $Peers[$Name].ikeVersion = $IkeVersion }
+            if ($IpsecPoliciesPreset) { $Peers[$Name].IpsecPoliciesPreset = $IpsecPoliciesPreset } 
+            if ($LocalId) { $Peers[$Name].localId = $LocalId }
+            if ($publicIp) { $Peers[$Name].publicIp = $PublicIp }
+            if ($RemoteId) { $Peers[$Name].remoteIp = $RemoteId }
+            if ($Secret) { $Peers[$Name].secret = $Secret }
+            if ($NetworkTags) { $Peer[$Name].networkTags = $NetworkTags }
+            if ($PrivateSubnets) { $Peers[$Name].privateSubnets = $PrivateSubnets }
+            if ($IpsecPolicies) { $Peer[$Name].ipsecPolicies = $IpsecPolicies }
         
-    $NewPeers = $Peers.Values
-    $_Body = @{
-        peers = $NewPeers
-    }
+            $NewPeers = $Peers.Values
+            $_Body = @{
+                peers = $NewPeers
+            }
 
-    $Body = $_Body | ConvertTo-Json -Depth 5 -Compress
+            $Body = $_Body | ConvertTo-Json -Depth 5 -Compress
 
-    try {
-        $response = Invoke-RestMethod -Method PUT -Uri $Uri -Headers $Headers -Body $Body -PreserveAuthorizationOnRedirect
+            try {
+                $response = Invoke-RestMethod -Method PUT -Uri $Uri -Headers $Headers -Body $Body -PreserveAuthorizationOnRedirect
 
-        return $response
-    } catch {
-        $Ex = $_ | Format-ApiException
-        $PSCmdlet.ThrowTerminatingError($Ex)
-    }
-    <#
+                return $response
+            }
+            catch {
+                $Ex = $_ | Format-ApiException
+                $PSCmdlet.ThrowTerminatingError($Ex)
+            }
+            <#
     .DESCRIPTION
     Updates a third party VPN peer for an Organization
     .PARAMETER Name
@@ -1261,14 +1300,14 @@ function Set-MerakiOrganizationThirdPartyVpnPeer() {
     .PARAMETER profileName
     Optional Profile name.
     #>
-    	}
+        }
     }
-    end{}
+    end {}
 }
 
 function New-MerakiOrganizationThirdPartyVpnPeer() {
-    [CmdletBinding(DefaultParameterSetName = 'default',SupportsShouldProcess=$true)]
-    Param(
+    [CmdletBinding(DefaultParameterSetName = 'default', SupportsShouldProcess = $true)]
+    param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [Parameter(Mandatory = $true)]
@@ -1289,55 +1328,57 @@ function New-MerakiOrganizationThirdPartyVpnPeer() {
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
-    begin{}
-    process{
-    	if ($pscmdlet.ShouldProcess("name - $Name")){
-    if (-not $OrgID) {
-        $config = Read-Config
-        if ($profileName) {
-            $OrgId = $config.profiles.$profileName
+    begin {}
+    process {
+        if ($pscmdlet.ShouldProcess("name - $Name")) {
             if (-not $OrgID) {
-                Write-ApiError -Message "Invalid profile name!"
+                $config = Read-Config
+                if ($profileName) {
+                    $OrgId = $config.profiles.$profileName
+                    if (-not $OrgID) {
+                        Write-ApiError -Message "Invalid profile name!"
+                    }
+                }
+                else {
+                    $OrgId = $config.profiles.default
+                }
             }
-        } else {
-            $OrgId = $config.profiles.default
-        }
-    }
 
-    $Headers = Get-Headers
+            $Headers = Get-Headers
 
-    $Uri = "{0}/organizations/{1}/appliance/vpn/thirdPartyVPNPeers" -f $BaseURI, $OrgID
+            $Uri = "{0}/organizations/{1}/appliance/vpn/thirdPartyVPNPeers" -f $BaseURI, $OrgID
 
-    $Peers = Get-MerakiOrganizationThirdPartyVPNPeers
+            $Peers = Get-MerakiOrganizationThirdPartyVPNPeers
 
-    $Peer = @{
-        name = $Name
-        secret = $Secret
-        privateSubnet = $PrivateSubnets
-    }
-    if ($IkeVersion) { $Peer.Add("ikeVersion", $IkeVersion) }
-    if ($IpsecPoliciesPreset) { $Peer.Add("ipsecPoliciesPreset", $IpsecPoliciesPreset) }
-    if ($LocalId) { $Peer.Add("localId", $LocalId) }
-    if ($PublicIp) { $Peer.Add("publicIp", $PublicIp) }
-    if ($RemoteId) { $Peer.Add("networkTags", $NetworkTags) }
-    if ($IpsecPolicies) { $Peer.Add("ipsecPolicies", $IpsecPolicies) }
+            $Peer = @{
+                name          = $Name
+                secret        = $Secret
+                privateSubnet = $PrivateSubnets
+            }
+            if ($IkeVersion) { $Peer.Add("ikeVersion", $IkeVersion) }
+            if ($IpsecPoliciesPreset) { $Peer.Add("ipsecPoliciesPreset", $IpsecPoliciesPreset) }
+            if ($LocalId) { $Peer.Add("localId", $LocalId) }
+            if ($PublicIp) { $Peer.Add("publicIp", $PublicIp) }
+            if ($RemoteId) { $Peer.Add("networkTags", $NetworkTags) }
+            if ($IpsecPolicies) { $Peer.Add("ipsecPolicies", $IpsecPolicies) }
 
-    $Peers += $Peer
-    $_Body = @{
-        peers = $Peers
-    }
+            $Peers += $Peer
+            $_Body = @{
+                peers = $Peers
+            }
 
-    $Body = $_Body | ConvertTo-Json -Depth 5 -Compress
+            $Body = $_Body | ConvertTo-Json -Depth 5 -Compress
 
-    try {
-        $response = Invoke-RestMethod -Method PUT -Uri $Uri -Headers $Headers -Body $Body -PreserveAuthorizationOnRedirect
+            try {
+                $response = Invoke-RestMethod -Method PUT -Uri $Uri -Headers $Headers -Body $Body -PreserveAuthorizationOnRedirect
 
-        return $response
-    } catch {
-        $Ex = $_ | Format-ApiException
-        $PSCmdlet.ThrowTerminatingError($Ex)
-    }
-    <#
+                return $response
+            }
+            catch {
+                $Ex = $_ | Format-ApiException
+                $PSCmdlet.ThrowTerminatingError($Ex)
+            }
+            <#
     .DESCRIPTION
     Create a new organization third party VPN peer.
     .PARAMETER Name
@@ -1375,15 +1416,15 @@ function New-MerakiOrganizationThirdPartyVpnPeer() {
     .PARAMETER profileName
     Optional Profile name.
     #>
-    	}
+        }
     }
-    end{}
+    end {}
 }
 
 function Get-MerakiOrganizationInventoryDevice() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiOrganizationInventoryDevices')]
-    Param(
+    param(
         [string]$Filter,
         [int]$Pages,
         [Parameter(ParameterSetName = 'org')]
@@ -1391,7 +1432,7 @@ function Get-MerakiOrganizationInventoryDevice() {
         [Parameter(ParameterSetName = 'profile')]
         [string]$profileName
     )
-<# 
+    <# 
     If ($OrgId -and $profileName) {
         Write-Host "The parameters OrgId and ProfileName cannot be used together!" -ForegroundColor Red
         return
@@ -1404,7 +1445,8 @@ function Get-MerakiOrganizationInventoryDevice() {
             if (-not $OrgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgID = $config.profiles.default
         }        
     }
@@ -1421,32 +1463,34 @@ function Get-MerakiOrganizationInventoryDevice() {
 
     try {
         $response = Invoke-WebRequest -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
-            [List[PsObject]]$result = $response.Content | ConvertFrom-Json
-            if ($result) {
-                $Results.AddRange($result)
-            }
-            $page = 1
-            if ($Pages -ne 1) {
-                $done = $false
-                do {
-                    if ($response.RelationLink['next']) {
-                        $Uri = $response.RelationLink['next']
-                        $response = Invoke-WebRequest -Method Get -Uri $Uri -Headers $Headers
-                        [List[PsObject]]$result = $response.Content | ConvertFrom-Json
-                        if ($result) {
-                            $Results.AddRange($result)
-                        }
-                        $page += 1
-                        if ($page -gt $Pages) {
-                            $done = $true
-                        }
-                    } else {
+        [List[PsObject]]$result = $response.Content | ConvertFrom-Json
+        if ($result) {
+            $Results.AddRange($result)
+        }
+        $page = 1
+        if ($Pages -ne 1) {
+            $done = $false
+            do {
+                if ($response.RelationLink['next']) {
+                    $Uri = $response.RelationLink['next']
+                    $response = Invoke-WebRequest -Method Get -Uri $Uri -Headers $Headers
+                    [List[PsObject]]$result = $response.Content | ConvertFrom-Json
+                    if ($result) {
+                        $Results.AddRange($result)
+                    }
+                    $page += 1
+                    if ($page -gt $Pages) {
                         $done = $true
                     }
-                } until ($done)
-            }
+                }
+                else {
+                    $done = $true
+                }
+            } until ($done)
+        }
         return $Results.ToArray()
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -1478,11 +1522,11 @@ function Get-MerakiOrganizationInventoryDevice() {
     #>
 }
 
-Set-Alias -Name GMOrgInvDevices -value Get-MerakiOrganizationInventoryDevices -Option ReadOnly
+Set-Alias -Name GMOrgInvDevices -Value Get-MerakiOrganizationInventoryDevices -Option ReadOnly
 
 function Get-MerakiOrganizationInventoryDevice() {
     [CmdletBinding()]
-    Param(
+    param(
         [Parameter(Mandatory)]
         [string]$Serial,
         [Parameter(ParameterSetName = 'org')]
@@ -1491,14 +1535,15 @@ function Get-MerakiOrganizationInventoryDevice() {
         [string]$profileName        
     )
 
-     if (-not $OrgID) {
+    if (-not $OrgID) {
         $config = Read-Config
         if ($profileName) {
             $OrgID = $config.profiles.$profileName
             if (-not $OrgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgID = $config.profiles.default
         }        
     }
@@ -1511,21 +1556,22 @@ function Get-MerakiOrganizationInventoryDevice() {
         $response = Invoke-RestMethod -Method Get -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
 
         return $response
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
 }
 
 function Get-MerakiOrganizationSecurityEvent() {
-    [CmdLetBinding(DefaultParameterSetName='Default')]
+    [CmdLetBinding(DefaultParameterSetName = 'Default')]
     [Alias('Get-MerakiOrganizationSecurityEvents')]
-    Param(
-        [ValidateScript({$_ -is [datetime]})]
+    param(
+        [ValidateScript({ $_ -is [datetime] })]
         [Parameter(ParameterSetName = 'dates', Mandatory)]            
         [datetime]$StartDate,
 
-        [ValidateScript({$_ -is [datetime]})]
+        [ValidateScript({ $_ -is [datetime] })]
         [Parameter(ParameterSetName = 'dates', Mandatory)]
         [datetime]$EndDate,
 
@@ -1533,28 +1579,28 @@ function Get-MerakiOrganizationSecurityEvent() {
             ParameterSetName = 'timeparams', 
             Mandatory = $false
         )]
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,365)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 365)]
         [int]$Days,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,24)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 24)]
         [Parameter(
             Mandatory = $false,
             ParameterSetName = 'timeparams'
         )]
         [int]$Hours,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,60)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 60)]
         [Parameter(
             Mandatory = $false,
             ParameterSetName = 'timeparams'
         )]
         [int]$Minutes,
 
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(1,60)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(1, 60)]
         [Parameter(
             Mandatory = $false,
             ParameterSetName = 'timeparams'
@@ -1569,11 +1615,11 @@ function Get-MerakiOrganizationSecurityEvent() {
         )]
         [string]$Timespan,
 
-        [ValidateScript({$_ -is [int]})]
+        [ValidateScript({ $_ -is [int] })]
         [ValidateRange(3, 1000)]
         [int]$PerPage,
 
-        [ValidateScript({$_ -is [int]})]
+        [ValidateScript({ $_ -is [int] })]
         [int]$Pages,
 
         [switch]$Descending,
@@ -1600,7 +1646,8 @@ function Get-MerakiOrganizationSecurityEvent() {
             if (-not $OrgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgID = $config.profiles.default
         }        
     }
@@ -1614,7 +1661,7 @@ function Get-MerakiOrganizationSecurityEvent() {
         $Query = "t0={0}" -f ($StartDate.ToString("0"))
     }
     if ($EndDate) {
-        if ($Query) {$Query += "&"}
+        if ($Query) { $Query += "&" }
         $Query = "{0}t1={0}" -f $Query, ($EndDate.ToString("O"))
     }
 
@@ -1639,18 +1686,18 @@ function Get-MerakiOrganizationSecurityEvent() {
     }
 
     if ($tsSeconds -gt 0) {
-        if ($Query) {$Query += "&"}
+        if ($Query) { $Query += "&" }
         $Query = "{0}timestamp={1}" -f $Query, $tsSeconds
     }
 
 
     if ($PerPage) {
-        if ($Query) {$Query += "&"}
+        if ($Query) { $Query += "&" }
         $Query = "{0}perPage={1}" -f $Query, $PerPage
     }
 
     if ($Descending) {
-        if ($Query) {$Query += '&'}
+        if ($Query) { $Query += '&' }
         $Query = "{0}sortOrder=descending" -f $Query
     }
 
@@ -1679,7 +1726,8 @@ function Get-MerakiOrganizationSecurityEvent() {
                     if ($page -gt $Pages) {
                         $done = $true
                     }
-                } else {
+                }
+                else {
                     $done = $true
                 }
             } until ($done)
@@ -1690,7 +1738,8 @@ function Get-MerakiOrganizationSecurityEvent() {
             }
         }
         return $Results
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -1725,7 +1774,7 @@ Set-Alias -Name GMNetSecEvents -Value Get-MerakiOrganizationSecurityEvents
 function Get-MerakiOrganizationFirmwareUpgrade() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiOrganizationFirmwareUpgrades')]
-    Param(
+    param(
         [switch]$IncludePending,
         [switch]$includeStarted,
         [switch]$IncludeCompleted,
@@ -1738,7 +1787,7 @@ function Get-MerakiOrganizationFirmwareUpgrade() {
         [switch]$IncludeSwitches,
         [switch]$IncludeSystemsManagers,
         [switch]$IncludeWireless,
-        [ValidateScript({$_ -is [int]})]
+        [ValidateScript({ $_ -is [int] })]
         [ValidateSet(3, 1000)]
         [int]$PerPage,
         [Parameter(ParameterSetName = 'org')]
@@ -1747,7 +1796,7 @@ function Get-MerakiOrganizationFirmwareUpgrade() {
         [string]$ProfileName
     )
 
-    Begin {
+    begin {
         if (-not $OrgID) {
             $config = Read-Config
             if ($profileName) {
@@ -1755,7 +1804,8 @@ function Get-MerakiOrganizationFirmwareUpgrade() {
                 if (-not $OrgID) {
                     Write-ApiError -Message "Invalid profile name!"
                 }
-            } else {
+            }
+            else {
                 $OrgID = $config.profiles.default
             }        
         }
@@ -1767,35 +1817,35 @@ function Get-MerakiOrganizationFirmwareUpgrade() {
         }
 
         $Statuses = [List[string]]::New()
-        if ($IncludePending) {$Statuses.Add("pending")}
-        if ($includeStarted) {$Statuses.Add("started")}
-        if ($IncludeCanceled) {$Statuses.Add("started")}
-        if ($IncludeSkipped) {$Statuses.Add("skipped")}
-        if ($IncludeCompleted) {$Statuses.Add("completed")}
+        if ($IncludePending) { $Statuses.Add("pending") }
+        if ($includeStarted) { $Statuses.Add("started") }
+        if ($IncludeCanceled) { $Statuses.Add("started") }
+        if ($IncludeSkipped) { $Statuses.Add("skipped") }
+        if ($IncludeCompleted) { $Statuses.Add("completed") }
         
         if ($Statuses.Count -gt 0) {
-            if ($Query) {$Query += "&"}
+            if ($Query) { $Query += "&" }
             $Query = "{0}status[]={1}" -f $Query, ($Statuses.ToArray() -join ',')            
         }
 
         $ProductTypes = [List[string]]::New()
-        if ($IncludeAppliances) {$ProductTypes.Add("appliance")}
-        if ($IncludeCameras) {$ProductTypes.Add("camera")}
-        if ($IncludeCellularGateways) {$ProductTypes.Add("cellularGateway")}
-        if ($IncludeSensors) {$ProductTypes.Add("sensors")}
-        if ($IncludeSwitches) {$ProductTypes.Add("switch")}
-        if ($IncludeSystemsManagers) {$ProductTypes.Add("systemsManager")}
-        if ($IncludeWireless) {$ProductTypes.Add("wireless")}
+        if ($IncludeAppliances) { $ProductTypes.Add("appliance") }
+        if ($IncludeCameras) { $ProductTypes.Add("camera") }
+        if ($IncludeCellularGateways) { $ProductTypes.Add("cellularGateway") }
+        if ($IncludeSensors) { $ProductTypes.Add("sensors") }
+        if ($IncludeSwitches) { $ProductTypes.Add("switch") }
+        if ($IncludeSystemsManagers) { $ProductTypes.Add("systemsManager") }
+        if ($IncludeWireless) { $ProductTypes.Add("wireless") }
 
 
         if ($ProductTypes.Count -gt 0) {
-            if ($Query) {$Query += "&"} else {$Query += "?"}
+            if ($Query) { $Query += "&" } else { $Query += "?" }
             $Query = "{0}productTypes[]={1}" -f $Query, ($ProductTypes.ToArray() -join ",")
         }
 
     }
 
-    Process{
+    process {
 
         $Uri = "{0}/organizations/{1}/firmware/upgrades" -f $BaseURI, $OrgId
 
@@ -1826,18 +1876,20 @@ function Get-MerakiOrganizationFirmwareUpgrade() {
                         if ($page -gt $Pages) {
                             $done = $true
                         }
-                    } else {
+                    }
+                    else {
                         $done = $true
                     }
                 } until ($done)
             }
             return $Results.ToArray()
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
     }
-        <#
+    <#
     .SYNOPSIS
     Get firmware upgrade information.
     .DESCRIPTION
@@ -1862,20 +1914,20 @@ Set-Alias -Name GMOFirmwareUpgrades -Value Get-MerakiOrganizationFirmwareUpgrade
 
 
 function Get-MerakiOrganizationFirmwareUpgradesByDevice() {
-    [CmdletBinding(DefaultParameterSetName='default')]
-    Param(        
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(3,1000)]
+    [CmdletBinding(DefaultParameterSetName = 'default')]
+    param(        
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(3, 1000)]
         [int]$PerPage,
-        [ValidateScript({$_ -is [int]})]
-        [int]$Pages=1,
+        [ValidateScript({ $_ -is [int] })]
+        [int]$Pages = 1,
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgId,
         [Parameter(ParameterSetName = 'profile')]
         [string]$ProfileName
     )
 
-    Begin {
+    begin {
         if (-not $OrgID) {
             $config = Read-Config
             if ($profileName) {
@@ -1883,7 +1935,8 @@ function Get-MerakiOrganizationFirmwareUpgradesByDevice() {
                 if (-not $OrgID) {
                     Write-ApiError -Message "Invalid profile name!"
                 }
-            } else {
+            }
+            else {
                 $OrgID = $config.profiles.default
             }        
         }
@@ -1893,7 +1946,7 @@ function Get-MerakiOrganizationFirmwareUpgradesByDevice() {
         $Uri = "{0}/organizations/{1}/firmware/upgrades/byDevice" -f $BaseURI, $OrgId
     }
     
-    Process {
+    process {
 
         if ($PerPage) {
             $Uri = "{0}?perPage={1}" -f $Uri, $PerPage
@@ -1901,7 +1954,7 @@ function Get-MerakiOrganizationFirmwareUpgradesByDevice() {
 
         $Results = [List[PsObject]]::New()
 
-        Try {
+        try {
             $response = Invoke-WebRequest -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
             [List[PsObject]]$result = $response.Content | ConvertFrom-Json
             if ($result) {
@@ -1922,14 +1975,16 @@ function Get-MerakiOrganizationFirmwareUpgradesByDevice() {
                         if ($page -gt $Pages) {
                             $done = $true
                         }
-                    } else {
+                    }
+                    else {
                         $done = $true
                     }
                 } until ($done)
             }
 
             return $Results.ToArray()
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -1959,12 +2014,12 @@ function Get-MerakiOrganizationFirmwareUpgradesByDevice() {
 function Get-MerakiOrganizationDeviceUplink() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiOrganizationDeviceUplinks')]
-    Param(
+    param(
         [string]$Filter,
-        [ValidateScript({$_ -is [int]})]
-        [ValidateRange(3,1000)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateRange(3, 1000)]
         [int]$PerPage,
-        [ValidateScript({$_ -is [int]})]
+        [ValidateScript({ $_ -is [int] })]
         [int]$Pages,
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgId,
@@ -1972,7 +2027,7 @@ function Get-MerakiOrganizationDeviceUplink() {
         [string]$ProfileName
     )
 
-    Begin {
+    begin {
         if (-not $OrgID) {
             $config = Read-Config
             if ($profileName) {
@@ -1980,7 +2035,8 @@ function Get-MerakiOrganizationDeviceUplink() {
                 if (-not $OrgID) {
                     Write-ApiError -Message "Invalid profile name!"
                 }
-            } else {
+            }
+            else {
                 $OrgID = $config.profiles.default
             }        
         }        
@@ -1993,10 +2049,11 @@ function Get-MerakiOrganizationDeviceUplink() {
             $Query = "?perPage={0}" -f $PerPage
         }
 
-        If ($Filter) {
+        if ($Filter) {
             if ($Query) {
                 $Query = "{0}&" -f $Query
-            } else {
+            }
+            else {
                 $Query = "?"
             }
             $Query = "{0}{1}" -f $Query, $Filter
@@ -2005,7 +2062,7 @@ function Get-MerakiOrganizationDeviceUplink() {
         $Uri = "{0}{1}" -f $Uri, $Query
     }
 
-    Process {
+    process {
         $Results = [List[PsObject]]::New()
 
         try {
@@ -2029,14 +2086,15 @@ function Get-MerakiOrganizationDeviceUplink() {
                         if ($page -gt $Pages) {
                             $done = $true
                         }
-                    } else {
+                    }
+                    else {
                         $done = $true
                     }
                 } until ($done)
             }
 
             $Networks = @{}
-            Get-MerakiNetworks | ForEach-Object{
+            Get-MerakiNetworks | ForEach-Object {
                 $Networks.Add($_.id, $_.name)
             }
             $Results | ForEach-Object {
@@ -2044,7 +2102,8 @@ function Get-MerakiOrganizationDeviceUplink() {
                 $_.network | Add-Member -MemberType NoteProperty -Name Name -Value $NetworkName 
             }
             return $Results.ToArray()
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -2091,8 +2150,8 @@ function Get-MerakiOrganizationDeviceUplink() {
 }
 
 function Get-MerakiOrganizationDeviceStatus() {
-    [CmdletBinding(DefaultParameterSetName='default')]
-    Param(
+    [CmdletBinding(DefaultParameterSetName = 'default')]
+    param(
         [string]$Filter,
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgId,
@@ -2100,7 +2159,7 @@ function Get-MerakiOrganizationDeviceStatus() {
         [string]$ProfileName
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
         #$NetworkIds = [List[string]]::New()
         #$Serials = [List[string]]::New()
@@ -2112,7 +2171,8 @@ function Get-MerakiOrganizationDeviceStatus() {
                 if (-not $OrgID) {
                     Write-ApiError -Message "Invalid profile name!"
                 }
-            } else {
+            }
+            else {
                 $OrgID = $config.profiles.default
             }        
         }
@@ -2124,11 +2184,11 @@ function Get-MerakiOrganizationDeviceStatus() {
 
     }
 
-    Process {
+    process {
 
         $Params = @{
-            Method = "Get"
-            Uri = $Uri
+            Method  = "Get"
+            Uri     = $Uri
             Headers = $Headers
         }
 
@@ -2147,7 +2207,8 @@ function Get-MerakiOrganizationDeviceStatus() {
                 $_ | Add-Member -MemberType NoteProperty -Name "NetworkName" -Value $NetworkName
             }
             return $Results
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -2185,14 +2246,14 @@ function Get-MerakiOrganizationDeviceStatus() {
 function Get-MerakiOrganizationApplianceVpnStatuse() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiOrganizationApplianceVpnStatuses')]
-    Param(
+    param(
         [Parameter(ValueFromPipelineByPropertyName)]
         [Alias('NetworkId')]
         [string]$id,
-        [ValidateScript({$_ -is [int]})]
-        [ValidateSet(3,300)]
+        [ValidateScript({ $_ -is [int] })]
+        [ValidateSet(3, 300)]
         [int]$PerPage,
-        [ValidateScript({$_ -is [int]})]
+        [ValidateScript({ $_ -is [int] })]
         [int]$Pages = 1,
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgId,
@@ -2200,7 +2261,7 @@ function Get-MerakiOrganizationApplianceVpnStatuse() {
         [string]$ProfileName
     )
 
-    Begin {
+    begin {
         $Headers = Get-Headers
 
         if (-not $OrgID) {
@@ -2210,7 +2271,8 @@ function Get-MerakiOrganizationApplianceVpnStatuse() {
                 if (-not $OrgID) {
                     Write-ApiError -Message "Invalid profile name!"
                 }
-            } else {
+            }
+            else {
                 $OrgID = $config.profiles.default
             }        
         }
@@ -2224,17 +2286,17 @@ function Get-MerakiOrganizationApplianceVpnStatuse() {
         $Uri = "{0}/organizations/{1}/appliance/vpn/statuses" -f $BaseURI, $OrgId
     }
 
-    Process {
+    process {
         if ($id) {
             $NetworkIds.Add($Id)
         }
     }
 
-    End {
+    end {
         $Results = [List[PsObject]]::New()
 
         if ($NetworkIds.Count -gt 0) {
-            if ($Query) {$Query += "&"} else {$Query += "?"}
+            if ($Query) { $Query += "&" } else { $Query += "?" }
             $Query = "{0}networkIds[]={1}" -f $Query, ($NetworkIds.ToArray() -join ',')
         }
 
@@ -2256,16 +2318,18 @@ function Get-MerakiOrganizationApplianceVpnStatuse() {
                             $Results.AddRange($result)
                         }
                         $page += 1
-                        if ($page =gt $Pages) {
+                        if ($page = gt $Pages) {
                             $done = $true
                         }
-                    } else {
+                    }
+                    else {
                         $done = $true
                     }
-                 } until ($done)
+                } until ($done)
             }
             return $Results.ToArray()
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -2293,17 +2357,17 @@ function Get-MerakiOrganizationApplianceVpnStatuse() {
 function Get-MerakiOrganizationApplianceUplinkStatus() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiOrganizationApplianceUplinkStatuses')]
-    Param(
+    param(
         [Parameter(
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
         )]
-        [String]$networkId="*",
+        [String]$networkId = "*",
         [Parameter(
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
         )]
-        [String]$serial="*",
+        [String]$serial = "*",
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgId,
         [Parameter(ParameterSetName = 'profile')]
@@ -2317,10 +2381,12 @@ function Get-MerakiOrganizationApplianceUplinkStatus() {
             if (-not $OrgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgID = $config.profiles.default
         }        
-    } else {
+    }
+    else {
         $config = Read-Config
     } 
 
@@ -2330,8 +2396,9 @@ function Get-MerakiOrganizationApplianceUplinkStatus() {
     try {
         $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
 
-        return $response | Where-Object {$_.networkID -like $networkID -and $_.serial -like $serial}
-    } catch {
+        return $response | Where-Object { $_.networkID -like $networkID -and $_.serial -like $serial }
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -2346,24 +2413,24 @@ function Get-MerakiOrganizationApplianceUplinkStatus() {
     An array of Meraki uplink objects.
     #>
 }
-Set-Alias -Name GMAppUpStat -value Get-MerakiOrganizationApplianceUplinkStatuses -Option ReadOnly
-Set-Alias -Name Get-MerakiApplianceUplinkStatuses -value Get-MerakiOrganizationApplianceUplinkStatuses -Option ReadOnly
+Set-Alias -Name GMAppUpStat -Value Get-MerakiOrganizationApplianceUplinkStatuses -Option ReadOnly
+Set-Alias -Name Get-MerakiApplianceUplinkStatuses -Value Get-MerakiOrganizationApplianceUplinkStatuses -Option ReadOnly
 
 
 function Get-MerakiOrganizationApplianceVpnStat() {
     [cmdletBinding(DefaultParameterSetName = 'default')]
     [Alias('Get-MerakiOrganizationApplianceVpnStats')]
-    Param(
+    param(
         [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
         )]
         [string]$id,
-        [ValidateSet({$_ -is [int]})]
-        [int]$perPage=100,
-        [ValidateSet({$_ -is [int]})]
-        [int]$TimeSpan=5,
+        [ValidateSet({ $_ -is [int] })]
+        [int]$perPage = 100,
+        [ValidateSet({ $_ -is [int] })]
+        [int]$TimeSpan = 5,
         [switch]$Summarize,
         [Parameter(ParameterSetName = 'org')]
         [string]$OrgId,
@@ -2371,7 +2438,7 @@ function Get-MerakiOrganizationApplianceVpnStat() {
         [string]$ProfileName
     )
 
-    Begin {
+    begin {
 
         if (-not $OrgID) {
             $config = Read-Config
@@ -2380,10 +2447,12 @@ function Get-MerakiOrganizationApplianceVpnStat() {
                 if (-not $OrgID) {
                     Write-ApiError -Message "Invalid profile name!"
                 }
-            } else {
+            }
+            else {
                 $OrgID = $config.profiles.default
             }        
-        } else {
+        }
+        else {
             $config = Read-Config
         } 
 
@@ -2399,8 +2468,9 @@ function Get-MerakiOrganizationApplianceVpnStat() {
             All properties are arrays except 'usedState', 'search', and 'tagFilterType'.
             The search property accepts a single value that will search against serial number, mac address, or model.
             Valid tagFilterType values are 'withAllTags' or 'withAnyTags'.
-            Valid productTypes values are "appliance","camera","cellularGateway","secureConnect","sensor","switch","systemsManager",or "wireless".
-        } else {
+            Valid productTypes values are "appliance", "camera", "cellularGateway", "secureConnect", "sensor", "switch", "systemsManager", or "wireless".
+        }
+        else {
             $OrgID = $config.profiles.default
         }
 
@@ -2421,7 +2491,7 @@ function Get-MerakiOrganizationApplianceVpnStat() {
         }
     }
 
-    Process {
+    process {
         $Network = Get-MerakiNetwork -networkID $id
 
         $Uri = "{0}/organizations/{1}/appliance/vpn/stats" -f $BaseURI, $OrgID
@@ -2434,7 +2504,7 @@ function Get-MerakiOrganizationApplianceVpnStat() {
             $response = Invoke-RestMethod -Method GET -Uri $Uri -Headers $Headers -PreserveAuthorizationOnRedirect
             
             $peers = $response.merakiVpnPeers
-            $PeerNetworks = New-object System.Collections.Generic.List[psobject]
+            $PeerNetworks = New-Object System.Collections.Generic.List[psobject]
             foreach ($peer in $peers) {
                 $P = [vpnPeer]::New()
                 $P.networkID = $id
@@ -2456,10 +2526,12 @@ function Get-MerakiOrganizationApplianceVpnStat() {
                 $summary.totalSentKilobytes = ($vpnPeers | Measure-Object -Property sentKilobytes -Sum).Sum            
 
                 return $summary
-            } else {
+            }
+            else {
                 $vpnPeers
             }
-        } catch {
+        }
+        catch {
             $Ex = $_ | Format-ApiException
             $PSCmdlet.ThrowTerminatingError($Ex)
         }
@@ -2485,7 +2557,7 @@ function Get-MerakiOrganizationApplianceVpnStat() {
 
 Set-Alias -Name GMAVpnStats -Value Get-MerakiOrganizationApplianceVpnStats -Option ReadOnly
 Set-Alias -Name GMOAVpnStats -Value Get-MerakiOrganizationApplianceVpnStats -Option ReadOnly
-set-Alias -Name Get-MerakiNetworkApplianceVpnStats -Value Get-MerakiOrganizationApplianceVpnStats
+Set-Alias -Name Get-MerakiNetworkApplianceVpnStats -Value Get-MerakiOrganizationApplianceVpnStats
 
 function Merge-MerakiOrganizationNetwork() {
     [CmdletBinding(
@@ -2494,7 +2566,7 @@ function Merge-MerakiOrganizationNetwork() {
         ConfirmImpact = 'High'
     )]
     [Alias('Merge-MerakiOrganizationNetworks')]
-    Param(
+    param(
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [Parameter(
@@ -2510,7 +2582,7 @@ function Merge-MerakiOrganizationNetwork() {
         [string]$ProfileName
 
     )
-    Begin {
+    begin {
 
         if (-not $OrgID) {
             $config = Read-Config
@@ -2519,10 +2591,12 @@ function Merge-MerakiOrganizationNetwork() {
                 if (-not $OrgID) {
                     Write-ApiError -Message "Invalid profile name!"
                 }
-            } else {
+            }
+            else {
                 $OrgID = $config.profiles.default
             }        
-        } else {
+        }
+        else {
             $config = Read-Config
         } 
 
@@ -2530,27 +2604,28 @@ function Merge-MerakiOrganizationNetwork() {
 
         $Header = Get-Headers
         $Uri = "{0}/organizations/{1}/networks/combine" -f $BaseURI, $OrgID
-   }
+    }
 
-    Process {
+    process {
         $Networks.Add($Id)
     }
 
-    End {
+    end {
 
         $_Body = @{
-            "name" = $Name
+            "name"       = $Name
             "networkIds" = ($Networks.ToArray())
         }
         if ($EnrollmentString) { $_Body.Add("enrollmentString", $EnrollmentString) }
 
         $body = $_Body | ConvertTo-Json -Compress
 
-        if ($PSCmdlet.ShouldProcess('Merge',"Networks $($Networks -join ',')")) {
+        if ($PSCmdlet.ShouldProcess('Merge', "Networks $($Networks -join ',')")) {
             try {
                 $response = Invoke-RestMethod -Method POST -Uri $Uri -Headers $Header -Body $Body -PreserveAuthorizationOnRedirect
                 return $response
-            } catch {
+            }
+            catch {
                 $Ex = $_ | Format-ApiException
                 $PSCmdlet.ThrowTerminatingError($Ex)
             }
@@ -2579,59 +2654,60 @@ function Merge-MerakiOrganizationNetwork() {
     #>
 }
 
-Function New-MerakiSecretsVault() {
-    [CmdletBinding(SupportsShouldProcess=$true)]
-    Param (
+function New-MerakiSecretsVault() {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param (
         [ValidateSet('Password', 'none')]
         [string]$Authentication,
-        [ValidateSet('Prompt','none')]
+        [ValidateSet('Prompt', 'none')]
         [string]$Interaction
     )
-    begin{}
-    process{
-    	if ($pscmdlet.ShouldProcess("vault with the authentication - $Authentication")){
-    Write-Host "This function is depreciated! You should create and configure your vault manually using the Secret Store module functions." -ForegroundColor Red
-    Write-Host "This function will be removed from future releases."
-    $response = Read-Host "Do you wish to continue? [y/N]"
-    if ($response -ne "y") {
-        return
-    }
+    begin {}
+    process {
+        if ($pscmdlet.ShouldProcess("vault with the authentication - $Authentication")) {
+            Write-Host "This function is depreciated! You should create and configure your vault manually using the Secret Store module functions." -ForegroundColor Red
+            Write-Host "This function will be removed from future releases."
+            $response = Read-Host "Do you wish to continue? [y/N]"
+            if ($response -ne "y") {
+                return
+            }
 
-    $CurrentConfig = Get-SecretStoreConfiguration | Where-Object {$_.Scope -eq "CurrentUser"}
+            $CurrentConfig = Get-SecretStoreConfiguration | Where-Object { $_.Scope -eq "CurrentUser" }
 
-    $Params = @{}
+            $Params = @{}
 
-    if ($Authentication) {
-        if ($Authentication -ne $CurrentConfig.Authentication) {
-            $Params.Add("Authentication",$Authentication)
-        }
-    }
+            if ($Authentication) {
+                if ($Authentication -ne $CurrentConfig.Authentication) {
+                    $Params.Add("Authentication", $Authentication)
+                }
+            }
 
-    if ($Interaction) {
-        if ($Interaction -ne $CurrentConfig.Interaction) {
-            $Params.Add("Interaction", $Interaction)
-        }
-    }
+            if ($Interaction) {
+                if ($Interaction -ne $CurrentConfig.Interaction) {
+                    $Params.Add("Interaction", $Interaction)
+                }
+            }
 
-    if ($Params.Count -gt 0) {
-        Set-SecretStoreConfiguration -Scope CurrentUser @Params
-    }
+            if ($Params.Count -gt 0) {
+                Set-SecretStoreConfiguration -Scope CurrentUser @Params
+            }
 
-    $Vaults = Get-SecretVault
-    if ($Vaults) {
-        if ($vaults.ModuleName -contains 'Microsoft.PowerShell.SecretStore') {
-            Write-Host "There is currently an existing Vault register for module $($Vault.ModuleName)." -ForegroundColor Yellow
-            Write-Host "The secretStore vault currently always operates in the logged user scope." -ForegroundColor Yellow
-            Write-Host "Registering SecretStore multiple times with different names just results in duplication of the same store," -ForegroundColor Yellow
-            Write-Host "This vault will be used to store the secrets." -ForegroundColor Yellow            
-         }
-    } else {
-        Register-SecretVault -Name "LocalVault" -ModuleName Microsoft.PowerShell.SecretStore -DefaultVault -AllowClobber
+            $Vaults = Get-SecretVault
+            if ($Vaults) {
+                if ($vaults.ModuleName -contains 'Microsoft.PowerShell.SecretStore') {
+                    Write-Host "There is currently an existing Vault register for module $($Vault.ModuleName)." -ForegroundColor Yellow
+                    Write-Host "The secretStore vault currently always operates in the logged user scope." -ForegroundColor Yellow
+                    Write-Host "Registering SecretStore multiple times with different names just results in duplication of the same store," -ForegroundColor Yellow
+                    Write-Host "This vault will be used to store the secrets." -ForegroundColor Yellow            
+                }
+            }
+            else {
+                Register-SecretVault -Name "LocalVault" -ModuleName Microsoft.PowerShell.SecretStore -DefaultVault -AllowClobber
 
-        Write-Host "Vault 'LocalVault' created." -ForegroundColor Yellow 
-    }
+                Write-Host "Vault 'LocalVault' created." -ForegroundColor Yellow 
+            }
 
-    <#
+            <#
     .DESCRIPTION
     Created a local Secret vault to store secrets. (This function is depreciated, you should create your vault manually.)
     .PARAMETER Authentication
@@ -2650,14 +2726,14 @@ Function New-MerakiSecretsVault() {
     This module does not support vaults registered with a different module.
     Secrets will ALWAYS be stored in the default vault!
     #>
-    	}
+        }
     }
-    end{}
+    end {}
 }
 
 function Get-MerakiOrganizationDeviceAvailability() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [string]$Filter,
         [int]$Pages,
         [Parameter(ParameterSetName = 'org')]
@@ -2673,10 +2749,12 @@ function Get-MerakiOrganizationDeviceAvailability() {
             if (-not $OrgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgID = $config.profiles.default
         }        
-    } else {
+    }
+    else {
         $config = Read-Config
     } 
 
@@ -2708,16 +2786,18 @@ function Get-MerakiOrganizationDeviceAvailability() {
                         $Results.AddRange($result)
                     }
                     $page += 1
-                    if ($page =gt $Pages) {
+                    if ($page = gt $Pages) {
                         $done = $true
                     }
-                } else {
+                }
+                else {
                     $done = $true
                 }
-                } until ($done)
+            } until ($done)
         }
         return $Results.ToArray()
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
@@ -2750,7 +2830,7 @@ function Get-MerakiOrganizationDeviceAvailability() {
 
 function Get-MerakiOrganizationDeviceAvailabilityChangeHistory() {
     [CmdletBinding(DefaultParameterSetName = 'default')]
-    Param(
+    param(
         [string]$Filter,
         [int]$Pages,
         [Parameter(ParameterSetName = 'org')]
@@ -2766,10 +2846,12 @@ function Get-MerakiOrganizationDeviceAvailabilityChangeHistory() {
             if (-not $OrgID) {
                 Write-ApiError -Message "Invalid profile name!"
             }
-        } else {
+        }
+        else {
             $OrgID = $config.profiles.default
         }        
-    } else {
+    }
+    else {
         $config = Read-Config
     } 
 
@@ -2801,17 +2883,20 @@ function Get-MerakiOrganizationDeviceAvailabilityChangeHistory() {
                         $Results.AddRange($result)
                     }
                     $page += 1
-                    if ($page =gt $Pages) {
+                    if ($page = gt $Pages) {
                         $done = $true
                     }
-                } else {
+                }
+                else {
                     $done = $true
                 }
-                } until ($done)
+            } until ($done)
         }
         return $Results.ToArray()
-    } catch {
+    }
+    catch {
         $Ex = $_ | Format-ApiException
         $PSCmdlet.ThrowTerminatingError($Ex)
     }
 }
+

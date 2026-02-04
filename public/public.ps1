@@ -19,7 +19,7 @@ if (Test-Path "$home/.meraki/config.json") {
     if (-not $oldconfig.profiles) {
         Write-Host "Converting existing configuration file!"
         $newConfig = @{
-            APIKey = $oldconfig.APIKey
+            APIKey   = $oldconfig.APIKey
             profiles = @{
                 default = $oldConfig.OrgId
             }
@@ -28,4 +28,5 @@ if (Test-Path "$home/.meraki/config.json") {
         $newConfig | ConvertTo-Json | Set-Content -Path "$home/.meraki/config.json"
     }
 }
+
 
